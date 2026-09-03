@@ -123,6 +123,45 @@ extraordinarias ni con más de 14 días de aviso.
 En modo demo hay un selector bajo el resultado para ver los diez escenarios, porque sin datos
 reales no hay forma de provocar una cancelación o un desvío.
 
+## Idiomas
+
+La web es bilingüe: **español** y **inglés americano**, con interruptor en la cabecera. El
+idioma inicial sale de lo que se eligió la última vez, si no del navegador, si no español.
+
+```
+src/i18n/
+  format.js       formatos por idioma (hora 24 h vs 12 h AM/PM, km vs millas)
+  es.js           todos los textos en español
+  en.js           todos los textos en inglés americano
+  index.jsx       proveedor de contexto, detección y persistencia
+src/data/
+  fixtures.es.js  escenarios españoles (Ryanair, Iberia, Vueling…)
+  fixtures.en.js  escenarios estadounidenses (American, Delta, Southwest…)
+```
+
+`src/lib/verdict.js` decide **qué** estado aplica y calcula los números; el idioma decide
+**cómo** se cuenta. Añadir un tercer idioma es escribir un archivo de textos y un set de
+escenarios, sin tocar una sola regla de negocio.
+
+### No es una traducción, es una adaptación
+
+Tres decisiones que lo separan de traducir con un diccionario:
+
+- **Formato de hora.** Un vuelo de las `20:30` se pinta `20:30` en español y `8:30 PM` en
+  inglés. Los datos se guardan siempre en 24 h canónico y se convierten al pintar. Las
+  distancias pasan de kilómetros a millas.
+- **Los escenarios cambian de mercado.** La demo estadounidense no traduce Madrid–Barcelona:
+  usa rutas de hub, aerolíneas locales y matrículas con N. Una demo llena de vuelos españoles
+  suena a producto extranjero para el público al que le quieres vender.
+- **El panel de cancelado dice cosas distintas porque la ley es distinta.** En Europa se
+  apoya en el reglamento (CE) 261/2004 y da una compensación orientativa por distancia. En
+  Estados Unidos **no existe equivalente**: desde 2024 la norma del DOT obliga a reembolso
+  automático en efectivo por cualquier cancelación, sea cual sea el motivo, pero no hay pago
+  por las molestias. Traducir el panel europeo habría sido prometer un dinero que no existe.
+
+Las etiquetas de la rotación son estructuradas (`{ kind, time, delay… }`) y las pinta el
+idioma, no el fixture. Cuando llegue el proveedor, el adaptador las construirá igual.
+
 ## Conectar el proveedor
 
 1. Crea una cuenta en [RapidAPI](https://rapidapi.com/aedbx-aedbx/api/aerodatabox/pricing) o

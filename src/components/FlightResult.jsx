@@ -2,22 +2,21 @@ import PlaneIcon from './PlaneIcon.jsx'
 import Rotation from './Rotation.jsx'
 import { TONES } from '../lib/tones.js'
 import { deriveVerdict } from '../lib/verdict.js'
+import { useI18n } from '../i18n/index.jsx'
 
 /** Los cuatro datos de cabecera, derivados del vuelo. */
-function metaItems(flight) {
+function metaItems(flight, t, fmt) {
   return [
-    { label: 'Salida oficial', value: flight.departure.scheduled ?? '—' },
-    { label: 'Terminal', value: flight.departure.terminal ?? '—' },
-    { label: 'Puerta', value: flight.departure.gate ?? '—' },
-    {
-      label: 'Retraso acum.',
-      value: flight.delayMin > 0 ? `+${flight.delayMin} min` : 'Ninguno',
-    },
+    { label: t.metaScheduled, value: fmt.time(flight.departure.scheduled) },
+    { label: t.metaTerminal, value: flight.departure.terminal ?? '—' },
+    { label: t.metaGate, value: flight.departure.gate ?? '—' },
+    { label: t.metaDelay, value: flight.delayMin > 0 ? `+${flight.delayMin} min` : t.noDelay },
   ]
 }
 
 export default function FlightResult({ flight }) {
-  const verdict = deriveVerdict(flight)
+  const { copy, t, fmt } = useI18n()
+  const verdict = deriveVerdict(flight, copy)
   const tone = TONES[verdict.tone]
   const { aircraft, rotation } = flight
 
@@ -63,7 +62,7 @@ export default function FlightResult({ flight }) {
       </div>
 
       <div className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(110px,1fr))] gap-4 border-t border-b border-line py-4">
-        {metaItems(flight).map((item) => (
+        {metaItems(flight, t, fmt).map((item) => (
           <div key={item.label}>
             <div className="mb-1.5 text-[11px] tracking-[0.06em] text-ink-dim uppercase">
               {item.label}
@@ -83,9 +82,7 @@ export default function FlightResult({ flight }) {
             <div className="mt-0.5 font-mono text-[12.5px] text-ink-dim">
               {[
                 aircraft.reg,
-                aircraft.ageYears != null
-                  ? `${aircraft.ageYears.toLocaleString('es-ES')} años`
-                  : null,
+                aircraft.ageYears != null ? t.years(aircraft.ageYears) : null,
                 flight.airline,
               ]
                 .filter(Boolean)
@@ -98,7 +95,7 @@ export default function FlightResult({ flight }) {
       {rotation.length > 0 && (
         <>
           <p className="mt-0 mb-4 flex items-center gap-2 font-display text-[15px] font-semibold text-ink">
-            🧭 Antes de llegar a por ti
+            {t.rotationTitle}
           </p>
           <Rotation legs={rotation} />
         </>

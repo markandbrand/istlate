@@ -109,8 +109,9 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
 
   // Sin key configurada seguimos en modo demo: la web despliega y funciona.
   if (!env.AERODATABOX_KEY) {
-    const { fixtureForCode } = await import('../data/fixtures.js')
-    return json({ ...fixtureForCode(code), demo: true }, 200, { 'x-isitlate-mode': 'demo' })
+    const { FIXTURES, DEMO_CODE } = await import('../data/fixtures.es.js')
+    const { fixtureForCode } = await import('../data/flightApi.js')
+    return json({ ...fixtureForCode(code, FIXTURES, DEMO_CODE), demo: true }, 200, { 'x-isitlate-mode': 'demo' })
   }
 
   const cacheKey = `${code}:${today()}`

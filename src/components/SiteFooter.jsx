@@ -1,7 +1,10 @@
+import { useI18n } from '../i18n/index.jsx'
+
 export default function SiteFooter() {
+  const { t } = useI18n()
   return (
     <footer className="pt-11 pb-[60px] text-center text-[12.5px] text-ink-dim">
-      IsItLate? — demo con datos de ejemplo · sin conexión a proveedores de vuelo reales todavía
+      {t.footer}
     </footer>
   )
 }

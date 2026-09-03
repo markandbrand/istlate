@@ -1,9 +1,12 @@
+import { useI18n } from '../i18n/index.jsx'
+
 /** Tarjeta de carga: el esqueleto respira mientras consultamos el vuelo. */
 export function LoadingCard() {
+  const { t } = useI18n()
   const bar = 'animate-pulse rounded-lg bg-line'
   return (
     <div className="rounded-card bg-card p-7 shadow-soft" aria-busy="true">
-      <p className="sr-only">Buscando tu vuelo…</p>
+      <p className="sr-only">{t.loading}</p>
       <div className="mb-6 flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className={`${bar} mb-3 h-3 w-[90px]`} />
@@ -27,10 +30,11 @@ export function LoadingCard() {
 
 /** Tarjeta de error: dice qué ha pasado y qué hacer, sin culpar al usuario. */
 export function ErrorCard({ message, onRetry }) {
+  const { t } = useI18n()
   return (
     <div className="rounded-card bg-card p-7 text-center shadow-soft">
       <div className="mb-3 text-[32px]">🧭</div>
-      <b className="mb-2 block font-display text-[19px]">Nos hemos perdido</b>
+      <b className="mb-2 block font-display text-[19px]">{t.errorTitle}</b>
       <p className="mx-auto mt-0 mb-5 max-w-[420px] text-[14px] leading-[1.55] text-ink-dim">
         {message}
       </p>
@@ -39,7 +43,7 @@ export function ErrorCard({ message, onRetry }) {
         onClick={onRetry}
         className="cursor-pointer rounded-[11px] border-none bg-blue px-5 py-3 font-display text-[14px] font-semibold text-white hover:bg-blue-hover"
       >
-        Probar otra vez
+        {t.errorRetry}
       </button>
     </div>
   )

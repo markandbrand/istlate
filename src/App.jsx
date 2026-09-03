@@ -7,10 +7,11 @@ import { LoadingCard, ErrorCard } from './components/StatusCard.jsx'
 import ScenarioSwitcher from './components/ScenarioSwitcher.jsx'
 import Waitlist from './components/Waitlist.jsx'
 import SiteFooter from './components/SiteFooter.jsx'
-import { DEMO_CODE, FIXTURES } from './data/fixtures.js'
-import { lookupFlight, loadScenario } from './data/flightApi.js'
+import { lookupFlight } from './data/flightApi.js'
+import { useI18n } from './i18n/index.jsx'
 
 export default function App() {
+  const { locale, fixtures, demoCode } = useI18n()
   const [query, setQuery] = useState('')
   const [flight, setFlight] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -24,6 +25,16 @@ export default function App() {
   // Descarta respuestas de búsquedas que el usuario ya ha dejado atrás.
   const lastSearch = useRef(0)
 
+  // Al cambiar de idioma cambian también los escenarios, así que se recarga
+  // el equivalente en el idioma nuevo en vez de dejar un vuelo del anterior.
+  useEffect(() => {
+    if (!scenario) return
+    const picked = fixtures[scenario]
+    if (!picked) return
+    setFlight({ ...picked, demo: true })
+    setQuery(picked.code)
+  }, [locale, scenario, fixtures])
+
   async function search(code = query) {
     const id = ++lastSearch.current
     setLoading(true)
@@ -32,11 +43,11 @@ export default function App() {
     setScenario(null)
     setSearchId((n) => n + 1)
     try {
-      const result = await lookupFlight(code)
+      const result = await lookupFlight(code, { fixtures, demoCode })
       if (id !== lastSearch.current) return
       setFlight(result)
       setIsDemo(Boolean(result.demo))
-      setScenario(Object.keys(FIXTURES).find((k) => FIXTURES[k].code === result.code) ?? null)
+      setScenario(Object.keys(fixtures).find((k) => fixtures[k].code === result.code) ?? null)
     } catch (err) {
       if (id !== lastSearch.current) return
       setError(err.message)
@@ -46,18 +57,18 @@ export default function App() {
   }
 
   function useDemo() {
-    setQuery(DEMO_CODE)
-    search(DEMO_CODE)
+    setQuery(demoCode)
+    search(demoCode)
   }
 
   function pickScenario(key) {
     lastSearch.current++
-    const picked = loadScenario(key)
+    const picked = fixtures[key]
     setLoading(false)
     setError(null)
     setScenario(key)
     setQuery(picked.code)
-    setFlight(picked)
+    setFlight({ ...picked, demo: true })
     setSearchId((n) => n + 1)
   }
 

@@ -19,7 +19,24 @@ const TAG_STYLES = {
   final: 'bg-green-dim text-green-ink',
 }
 
+import { useI18n } from '../i18n/index.jsx'
+
+/** Pinta la etiqueta de un tramo en el idioma activo. */
+function renderTag(tag, dict) {
+  const render = dict[tag.kind]
+  if (!render) return ''
+  switch (tag.kind) {
+    case 'tookOff': return render(tag.time, tag.delay)
+    case 'landed':
+    case 'inFlightEta': return render(tag.time)
+    case 'layover': return render(tag.min)
+    case 'divertedHere': return render(tag.why)
+    default: return render()
+  }
+}
+
 export default function Rotation({ legs }) {
+  const { copy } = useI18n()
   return (
     <div className="mb-[30px] px-1 pt-1">
       {legs.map((leg, i) => {
@@ -43,7 +60,7 @@ export default function Rotation({ legs }) {
               <span
                 className={`mt-1.5 inline-block rounded-full px-2.5 py-[3px] text-[12px] font-semibold ${TAG_STYLES[leg.state]}`}
               >
-                {leg.tag}
+                {renderTag(leg.tag, copy.tag)}
               </span>
             </div>
           </div>

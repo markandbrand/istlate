@@ -2,10 +2,9 @@
  * Único punto de contacto de la interfaz con los datos.
  *
  * Hoy pega contra /api/flight, que en ausencia de key devuelve los datos de
- * ejemplo. El día que la key esté puesta, esta función no cambia ni una línea:
- * la respuesta ya viene en la forma interna.
+ * ejemplo. El día que la key esté puesta, esta función no cambia: la respuesta
+ * ya viene en la forma interna.
  */
-import { fixtureForCode, FIXTURES } from './fixtures.js'
 
 /** Si no hay backend (npm run dev a secas), tiramos de los datos de ejemplo. */
 const OFFLINE_FALLBACK = true
@@ -17,7 +16,14 @@ export class FlightError extends Error {
   }
 }
 
-export async function lookupFlight(code) {
+/** Busca un escenario por su número de vuelo; si no, el de la demo. */
+export function fixtureForCode(code, fixtures, demoCode) {
+  const normalized = (code || '').trim().toUpperCase()
+  const match = Object.values(fixtures).find((f) => f.code === normalized)
+  return match ?? { ...fixtures.late, code: normalized || demoCode }
+}
+
+export async function lookupFlight(code, { fixtures, demoCode }) {
   const normalized = (code || '').trim().toUpperCase()
 
   try {
@@ -28,12 +34,7 @@ export async function lookupFlight(code) {
   } catch (err) {
     if (err instanceof FlightError) throw err
     // No hay función serverless levantada: seguimos en modo demo.
-    if (OFFLINE_FALLBACK) return { ...fixtureForCode(normalized), demo: true }
+    if (OFFLINE_FALLBACK) return { ...fixtureForCode(normalized, fixtures, demoCode), demo: true }
     throw new FlightError('No hemos podido consultar el vuelo ahora mismo.', 'network')
   }
-}
-
-/** Carga directa de un escenario, para el selector de la demo. */
-export function loadScenario(key) {
-  return { ...FIXTURES[key], demo: true }
 }
