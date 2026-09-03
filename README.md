@@ -164,22 +164,61 @@ idioma, no el fixture. Cuando llegue el proveedor, el adaptador las construirá 
 
 ## Conectar el proveedor
 
-1. Crea una cuenta en [RapidAPI](https://rapidapi.com/aedbx-aedbx/api/aerodatabox/pricing) o
-   en [API.market](https://api.market/store/aedbx/aerodatabox) y suscríbete a AeroDataBox
-   (el plan Basic es gratis).
-2. Copia la key y ponla como variable de entorno **`AERODATABOX_KEY`** en el panel del host
-   (Netlify: *Site settings → Environment variables*; Cloudflare Pages: *Settings →
-   Environment variables*). Sin prefijo `VITE_`.
-3. Vuelve a desplegar. La función deja de devolver datos de ejemplo automáticamente.
+### 1. Consigue la key gratis
 
-Antes de escribir más código, verifica en su playground:
+1. Crea cuenta en [RapidAPI](https://rapidapi.com/aedbx-aedbx/api/aerodatabox/pricing)
+   (alternativa sin tarjeta: [API.market](https://api.market/store/aedbx/aerodatabox)).
+2. En la pestaña **Pricing** de AeroDataBox, suscríbete al plan **Basic ($0.00/mes)**.
+3. Comprueba que el plan está **limitado por tope duro**, no con facturación por exceso: así
+   un bug no puede generar cargos.
+4. La key aparece en la pestaña **Endpoints**, en el campo `X-RapidAPI-Key` de los ejemplos
+   de código.
 
-- **¿Desde cuántas horas antes de la salida viene relleno `aircraft.reg`?** Es lo que
-  decide con cuánta antelación funciona el producto.
-- **¿Qué devuelve exactamente un vuelo cancelado?** Es el estado peor cubierto por todos
+### 2. Ponla en local
+
+```bash
+cp .env.example .env      # y pega la key en AERODATABOX_KEY
+```
+
+### 3. Comprueba que funciona, antes de tocar nada
+
+```bash
+npm run probe -- FR1234
+```
+
+La sonda (`scripts/probe.mjs`) prueba varias rutas candidatas, dice cuál responde, y sobre
+todo responde **la pregunta que decide el producto: ¿viene rellena `aircraft.reg`?** Si la
+hay, encadena la segunda llamada y lista los tramos del avión hoy. Guarda las respuestas
+completas en `probe-*.json` para poder ajustar el adaptador contra datos reales.
+
+Lánzala varias veces sobre el mismo vuelo, a T-8h, T-4h, T-2h y T-1h. El momento en que
+aparece la matrícula es el que define con cuánta antelación funciona IsItLate?.
+
+### 4. Pruébalo en la web, en local
+
+```bash
+npm run dev
+```
+
+`vite.config.js` monta `/api/flight` en desarrollo con el mismo `handleFlightRequest` que
+usa la función serverless, así que lo que ves en local es exactamente lo que se despliega.
+Sin key, sigue en modo demo.
+
+### 5. Despliega
+
+Pon **`AERODATABOX_KEY`** en el panel del host (Netlify: *Site settings → Environment
+variables*; Cloudflare Pages: *Settings → Environment variables*), **sin prefijo `VITE_`**, y
+vuelve a desplegar. La función deja de devolver datos de ejemplo sola.
+
+### Lo que queda por confirmar
+
+- **La ruta exacta de los endpoints.** `src/lib/flightService.js` usa
+  `/flights/number/{code}/{fecha}`, deducida de su esquema pero sin verificar. La sonda lo
+  resuelve; si ninguna candidata responde, copia la URL del playground de AeroDataBox.
+- **El anidamiento de los objetos de tiempo** (`scheduledTime`, `revisedTime`), para rematar
+  `hhmm()` en `src/lib/adapter.js`.
+- **Qué devuelve exactamente un vuelo cancelado**, que es el estado peor cubierto por todos
   los proveedores.
-- El anidamiento real de los objetos de tiempo (`scheduledTime`, `revisedTime`), para
-  confirmar `hhmm()` en `src/lib/adapter.js`.
 
 ### Coste estimado
 

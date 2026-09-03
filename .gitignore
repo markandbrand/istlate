@@ -9,3 +9,6 @@ yarn-error.log*
 .env
 .env.*
 !.env.example
+
+# Respuestas guardadas por la sonda
+probe-*.json
