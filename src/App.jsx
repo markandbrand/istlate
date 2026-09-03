@@ -16,6 +16,8 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [scenario, setScenario] = useState(null)
+  // Asumimos modo demo hasta que el backend devuelva datos reales.
+  const [isDemo, setIsDemo] = useState(true)
   // Cambia en cada búsqueda para remontar el resultado y repetir la animación.
   const [searchId, setSearchId] = useState(0)
   const resultRef = useRef(null)
@@ -33,6 +35,7 @@ export default function App() {
       const result = await lookupFlight(code)
       if (id !== lastSearch.current) return
       setFlight(result)
+      setIsDemo(Boolean(result.demo))
       setScenario(Object.keys(FIXTURES).find((k) => FIXTURES[k].code === result.code) ?? null)
     } catch (err) {
       if (id !== lastSearch.current) return
@@ -75,6 +78,8 @@ export default function App() {
 
         <Hero value={query} onChange={setQuery} onSearch={() => search()} onUseDemo={useDemo} />
 
+        {isDemo && <ScenarioSwitcher active={scenario} onPick={pickScenario} />}
+
         {showing && (
           <section ref={resultRef} className="pt-[10px] pb-[60px]">
             <div key={searchId} className="animate-rise">
@@ -83,12 +88,7 @@ export default function App() {
               {flight && !loading && !error && <FlightResult flight={flight} />}
             </div>
 
-            {flight && !loading && !error && (
-              <>
-                {flight.demo && <ScenarioSwitcher active={scenario} onPick={pickScenario} />}
-                <Waitlist />
-              </>
-            )}
+            {flight && !loading && !error && <Waitlist />}
           </section>
         )}
 
