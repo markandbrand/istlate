@@ -20,6 +20,17 @@
   --color-green-dim: #e4f8f0;
   --color-green-ink: #1a8f63;
   --color-amber: #ffb648;
+  --color-amber-dim: #fff4e2;
+  --color-amber-line: #ffe0b0;
+  --color-amber-ink: #9a5b00;
+  --color-alert: #d4453b;
+  --color-alert-dim: #fdeceb;
+  --color-alert-line: #f7ccc8;
+  --color-alert-ink: #a32f27;
+  --color-slate: #7d92a6;
+  --color-slate-dim: #eef2f6;
+  --color-slate-line: #dbe4ec;
+  --color-slate-ink: #4a5d70;
   --color-muted: #9fb3c6;
   --color-track: #b7c8d8;
   --color-tag-done: #eef2f6;

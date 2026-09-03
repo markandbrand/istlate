@@ -28,10 +28,10 @@ export default function Rotation({ legs }) {
           <div key={`${leg.iata}-${i}`} className="relative grid grid-cols-[60px_1fr] gap-4">
             <div className="relative flex flex-col items-center">
               <div
-                className={`z-[2] h-4 w-4 shrink-0 rounded-full border-[3px] border-white ${NODE_STYLES[leg.status]}`}
+                className={`z-[2] h-4 w-4 shrink-0 rounded-full border-[3px] border-white ${NODE_STYLES[leg.state]}`}
               />
               {!isLast && (
-                <div className={`min-h-[42px] w-[3px] flex-1 rounded-sm ${STEM_STYLES[leg.status]}`} />
+                <div className={`min-h-[42px] w-[3px] flex-1 rounded-sm ${STEM_STYLES[leg.state]}`} />
               )}
             </div>
 
@@ -41,7 +41,7 @@ export default function Rotation({ legs }) {
                 <span className="ml-1.5 text-[13px] font-medium text-ink-dim">{leg.iata}</span>
               </div>
               <span
-                className={`mt-1.5 inline-block rounded-full px-2.5 py-[3px] text-[12px] font-semibold ${TAG_STYLES[leg.status]}`}
+                className={`mt-1.5 inline-block rounded-full px-2.5 py-[3px] text-[12px] font-semibold ${TAG_STYLES[leg.state]}`}
               >
                 {leg.tag}
               </span>

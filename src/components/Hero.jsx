@@ -1,4 +1,4 @@
-import { DEMO_CODE } from '../data/demoFlight.js'
+import { DEMO_CODE } from '../data/fixtures.js'
 
 export default function Hero({ value, onChange, onSearch, onUseDemo }) {
   function handleKeyDown(e) {
