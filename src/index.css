@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+/* Paleta y tipografías originales de la demo, ahora como tokens de Tailwind. */
+@theme {
+  --color-sky-top: #cfe9fb;
+  --color-sky-bot: #f3faff;
+  --color-ink: #1c2b3a;
+  --color-ink-dim: #5c7188;
+  --color-card: #ffffff;
+  --color-line: #dcebf5;
+  --color-blue: #2f7fd6;
+  --color-blue-hover: #276cb8;
+  --color-blue-dim: #e6f2fc;
+  --color-coral: #ff7a59;
+  --color-coral-hover: #ff6a45;
+  --color-coral-dim: #ffece6;
+  --color-coral-line: #ffd9c9;
+  --color-coral-ink: #c2431f;
+  --color-green: #25b982;
+  --color-green-dim: #e4f8f0;
+  --color-green-ink: #1a8f63;
+  --color-amber: #ffb648;
+  --color-muted: #9fb3c6;
+  --color-track: #b7c8d8;
+  --color-tag-done: #eef2f6;
+  --color-tag-pending: #f3f6f9;
+  --color-fc: #f6fafd;
+
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Baloo 2", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --shadow-soft: 0 18px 40px -18px rgb(47 127 214 / 0.28);
+
+  --radius-card: 20px;
+
+  --animate-rise: rise 0.5s ease both;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(40px); }
+}
+
+@keyframes fly {
+  0% { transform: translate(0, 0) rotate(6deg); }
+  50% { transform: translate(55vw, 6vh) rotate(6deg); }
+  100% { transform: translate(115vw, -2vh) rotate(6deg); }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    line-height: normal;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    background: linear-gradient(180deg, var(--color-sky-top) 0%, var(--color-sky-bot) 55%);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  button:focus-visible,
+  input:focus-visible {
+    outline: 3px solid var(--color-blue);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
