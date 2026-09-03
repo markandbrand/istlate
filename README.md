@@ -97,6 +97,29 @@ arrived · delayed · diverted · canceled · canceledUncertain · unknown`.
 Regla de tono del producto: **el humor es inversamente proporcional a la gravedad**. Se bromea
 cuando todo va bien, se es plano cuando va mal y se es útil de verdad en una cancelación.
 
+### El panel de cada estado
+
+Cada veredicto cierra con un panel de dos datos (`buildPanel()` en `src/lib/verdict.js`) que
+responde a la pregunta concreta de quien está mirando esa pantalla. No es decoración: es el
+dato que hace que la app se sienta la más fácil del mundo para enterarte de lo de tu avión.
+
+| Estado | Panel | Responde a |
+|---|---|---|
+| `parked` | ☕ Mientras tanto | Cuánto lleva el avión esperándote |
+| `overnight` | 🌙 Herencia del día anterior | Cuánto retraso hereda: ninguno |
+| `onTime` | ⏱️ El margen que tiene | Minutos que necesita para dar la vuelta vs. los que tiene |
+| `risk` | 👀 El número a vigilar | La hora exacta que decide si sales puntual |
+| `late` | 🔮 Nuestra previsión | Lo que dice la aerolínea vs. lo que decimos nosotros |
+| `diverted` | 🗺️ La vuelta que ha dado | Kilómetros de más y nueva salida |
+| `unassigned` | 🕐 Cuándo volver a mirar | A qué hora se sabrá el avión |
+| `canceledUncertain` | 📡 Cómo de fresco es esto | Hace cuánto lo comprobamos |
+| `canceled` | ⚖️ Lo que te pueden deber | Compensación orientativa según distancia |
+| `gone` | 🚪 Si vienes a recoger a alguien | A qué hora sale de verdad por la puerta |
+
+El importe de `canceled` sale de los tramos por distancia del reglamento (CE) 261/2004
+(250 € / 400 € / 600 €) y se etiqueta siempre como orientativo: no se cobra en circunstancias
+extraordinarias ni con más de 14 días de aviso.
+
 En modo demo hay un selector bajo el resultado para ver los diez escenarios, porque sin datos
 reales no hay forma de provocar una cancelación o un desvío.
 

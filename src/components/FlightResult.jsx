@@ -1,7 +1,7 @@
 import PlaneIcon from './PlaneIcon.jsx'
 import Rotation from './Rotation.jsx'
 import { TONES } from '../lib/tones.js'
-import { deriveVerdict, effectiveDeparture } from '../lib/verdict.js'
+import { deriveVerdict } from '../lib/verdict.js'
 
 /** Los cuatro datos de cabecera, derivados del vuelo. */
 function metaItems(flight) {
@@ -104,27 +104,35 @@ export default function FlightResult({ flight }) {
         </>
       )}
 
-      {flight.estimate && (
+      {verdict.panel && (
         <>
           <p className="mt-0 mb-4 flex items-center gap-2 font-display text-[15px] font-semibold text-ink">
-            🔮 Nuestra previsión
+            {verdict.panel.label}
           </p>
           <div className="mb-2 grid grid-cols-1 gap-3 min-[561px]:grid-cols-2">
-            <div className="rounded-[14px] border-2 border-line bg-fc px-[18px] py-4">
-              <div className="mb-2 text-[11px] tracking-[0.06em] text-ink-dim uppercase">
-                Dice la aerolínea
+            {verdict.panel.cards.map((card) => (
+              <div
+                key={card.k}
+                className={`rounded-[14px] border-2 px-[18px] py-4 ${
+                  card.accent ? tone.card : 'border-line bg-fc'
+                }`}
+              >
+                <div className="mb-2 text-[11px] tracking-[0.06em] text-ink-dim uppercase">
+                  {card.k}
+                </div>
+                <div
+                  className={`font-mono text-[19px] font-bold ${card.accent ? tone.cardValue : ''}`}
+                >
+                  {card.v}
+                </div>
               </div>
-              <div className="font-mono text-[19px] font-bold">{effectiveDeparture(flight)}</div>
-            </div>
-            <div className="rounded-[14px] border-2 border-coral-line bg-coral-dim px-[18px] py-4">
-              <div className="mb-2 text-[11px] tracking-[0.06em] text-ink-dim uppercase">
-                Nuestra estimación
-              </div>
-              <div className="font-mono text-[19px] font-bold text-coral-ink">
-                {flight.estimate.from} – {flight.estimate.to}
-              </div>
-            </div>
+            ))}
           </div>
+          {verdict.panel.note && (
+            <p className="mt-[14px] mb-[1em] text-[13.5px] leading-[1.6] text-ink-dim">
+              {verdict.panel.note}
+            </p>
+          )}
         </>
       )}
     </div>

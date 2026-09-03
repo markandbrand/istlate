@@ -44,6 +44,8 @@ export const FIXTURES = {
     aircraft: { reg: 'EC-MXV', model: 'Airbus A320neo', ageYears: 5.1 },
     delayMin: 0,
     turnaroundMin: 115,
+    minTurnaroundMin: 40,
+    parkedSince: '19:05',
     estimate: null,
     rotation: [
       leg('Palma', 'PMI', 'done', 'Despegó · 17:35'),
@@ -61,6 +63,7 @@ export const FIXTURES = {
     aircraft: { reg: 'EC-NIX', model: 'Airbus A320', ageYears: 6.8 },
     delayMin: 0,
     turnaroundMin: null,
+    lastFlewAt: 'ayer a las 22:40',
     estimate: null,
     rotation: [
       leg('Barcelona', 'BCN', 'done', '🌙 Ha pasado la noche aquí'),
@@ -77,6 +80,7 @@ export const FIXTURES = {
     aircraft: { reg: 'EC-NCJ', model: 'Boeing 737-800', ageYears: 9.4 },
     delayMin: 5,
     turnaroundMin: 50,
+    minTurnaroundMin: 25,
     estimate: null,
     rotation: [
       leg('Valencia', 'VLC', 'active', '✈️ En vuelo, aterriza sobre las 18:45'),
@@ -95,6 +99,8 @@ export const FIXTURES = {
     aircraft: { reg: 'EI-DYG', model: 'Boeing 737-800', ageYears: 14.6 },
     delayMin: 22,
     turnaroundMin: 30,
+    minTurnaroundMin: 25,
+    tippingPoint: '17:50',
     estimate: { from: '18:25', to: '18:50' },
     rotation: [
       leg('Bérgamo', 'BGY', 'done', 'Despegó · 13:10 (+22 min)'),
@@ -113,6 +119,7 @@ export const FIXTURES = {
     aircraft: null,
     delayMin: 0,
     turnaroundMin: null,
+    distanceKm: 830,
     estimate: null,
     rotation: [],
   },
@@ -126,6 +133,7 @@ export const FIXTURES = {
     aircraft: null,
     delayMin: 0,
     turnaroundMin: null,
+    lastCheckedMin: 2,
     estimate: null,
     rotation: [],
   },
@@ -139,6 +147,7 @@ export const FIXTURES = {
     aircraft: { reg: 'EC-MER', model: 'Airbus A320', ageYears: 11.2 },
     delayMin: 140,
     turnaroundMin: null,
+    extraKm: 320,
     estimate: null,
     rotation: [
       leg('Madrid', 'MAD', 'done', 'Despegó · 18:15'),
@@ -158,6 +167,7 @@ export const FIXTURES = {
     aircraft: null,
     delayMin: 0,
     turnaroundMin: null,
+    knownBy: '08:30',
     estimate: null,
     rotation: [],
   },
@@ -172,6 +182,7 @@ export const FIXTURES = {
     aircraft: { reg: 'EC-JFH', model: 'Airbus A321', ageYears: 18.3 },
     delayMin: 12,
     turnaroundMin: null,
+    hasCheckedBags: false,
     estimate: { from: '22:35', to: '22:45' },
     rotation: [
       leg('Madrid', 'MAD', 'done', 'Despegó · 19:20'),

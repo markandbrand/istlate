@@ -45,7 +45,176 @@ export function effectiveDeparture(flight) {
   return flight.departure.revised ?? flight.departure.scheduled
 }
 
+/** Minutos entre dos horas "hh:mm", cruzando medianoche si hace falta. */
+export function minutesBetween(from, to) {
+  if (!from || !to) return null
+  const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5))
+  let diff = toMin(to) - toMin(from)
+  if (diff < 0) diff += 1440
+  return diff
+}
+
+/** Suma minutos a una hora "hh:mm". */
+export function plusMinutes(hhmm, minutes) {
+  return minusMinutes(hhmm, -minutes)
+}
+
+/** 115 → "1 h 55 min" */
+export function humanDuration(min) {
+  if (min == null) return null
+  if (min < 60) return `${min} min`
+  const h = Math.floor(min / 60)
+  const m = min % 60
+  return m === 0 ? `${h} h` : `${h} h ${m} min`
+}
+
+/**
+ * Compensación orientativa del reglamento (CE) 261/2004 por distancia.
+ * Es orientativa a propósito: no se cobra si la causa es una circunstancia
+ * extraordinaria, y el aviso con más de 14 días de antelación también la anula.
+ */
+export function compensation(km) {
+  if (km == null) return null
+  if (km <= 1500) return '250 €'
+  if (km <= 3500) return '400 €'
+  return '600 €'
+}
+
+/**
+ * El panel es el bloque de datos del final de la tarjeta. Cada estado enseña
+ * el dato que de verdad se está preguntando quien mira esa pantalla, no un
+ * relleno: cuánto lleva el avión esperándote, cuánto margen tiene la escala,
+ * a qué hora sale tu amigo por la puerta de llegadas.
+ */
+function buildPanel(flight, key) {
+  const salida = effectiveDeparture(flight)
+
+  switch (key) {
+    case 'parked': {
+      const espera = minutesBetween(flight.parkedSince, salida)
+      return {
+        label: '☕ Mientras tanto',
+        cards: [
+          { k: 'Aparcado desde', v: flight.parkedSince },
+          { k: 'Lleva esperándote', v: humanDuration(espera), accent: true },
+        ],
+        note: 'Tu avión está echando la siesta en la puerta. Es la mejor noticia que te podemos dar.',
+      }
+    }
+
+    case 'overnight':
+      return {
+        label: '🌙 Herencia del día anterior',
+        cards: [
+          { k: 'La última vez que voló', v: flight.lastFlewAt },
+          { k: 'Retraso que hereda', v: 'Ninguno', accent: true },
+        ],
+        note: 'Todo el lío de ayer se quedó en ayer. Tu avión empieza el día de cero, y contigo.',
+      }
+
+    case 'onTime': {
+      const necesita = flight.minTurnaroundMin
+      const tiene = flight.turnaroundMin
+      if (necesita == null || tiene == null) return null
+      return {
+        label: '⏱️ El margen que tiene',
+        cards: [
+          { k: 'Necesita para dar la vuelta', v: `${necesita} min` },
+          { k: 'Tiene', v: `${tiene} min`, accent: true },
+        ],
+        note: `Le sobran ${tiene - necesita} minutos. Da tiempo a limpiar la cabina, repostar y hasta a que el piloto se tome un café.`,
+      }
+    }
+
+    case 'risk':
+      return {
+        label: '👀 El número a vigilar',
+        cards: [
+          { k: 'Si aterriza antes de', v: flight.tippingPoint },
+          { k: 'Sales a tu hora', v: salida, accent: true },
+        ],
+        note: 'Ese es el momento exacto en el que se decide tu tarde. Nosotros lo miramos por ti.',
+      }
+
+    case 'late':
+      if (!flight.estimate) return null
+      return {
+        label: '🔮 Nuestra previsión',
+        cards: [
+          { k: 'Dice la aerolínea', v: salida },
+          { k: 'Nuestra estimación', v: `${flight.estimate.from} – ${flight.estimate.to}`, accent: true },
+        ],
+        note: null,
+      }
+
+    case 'canceledUncertain':
+      return {
+        label: '📡 Cómo de fresco es esto',
+        cards: [
+          { k: 'Última comprobación', v: `hace ${flight.lastCheckedMin} min` },
+          { k: 'Estado oficial', v: 'Sin confirmar', accent: true },
+        ],
+        note: 'Preferimos decirte que no lo sabemos seguro antes que darte un susto en falso o dejarte tirado en el aeropuerto.',
+      }
+
+    case 'diverted':
+      return {
+        label: '🗺️ La vuelta que ha dado',
+        cards: [
+          { k: 'Kilómetros de más', v: `${flight.extraKm} km` },
+          { k: 'Nueva salida', v: salida, accent: true },
+        ],
+        note: 'Tu avión ha hecho turismo sin ti. Nadie te lo iba a contar tan claro.',
+      }
+
+    case 'unassigned':
+      return {
+        label: '🕐 Cuándo volver a mirar',
+        cards: [
+          { k: 'Se suele saber sobre las', v: flight.knownBy },
+          { k: 'Salida prevista', v: salida, accent: true },
+        ],
+        note: 'No te hacemos perder el tiempo recargando: déjanos el email y te escribimos en cuanto haya avión.',
+      }
+
+    case 'canceled': {
+      const importe = compensation(flight.distanceKm)
+      if (!importe) return null
+      return {
+        label: '⚖️ Lo que te pueden deber',
+        cards: [
+          { k: 'Distancia del vuelo', v: `${flight.distanceKm.toLocaleString('es-ES')} km` },
+          { k: 'Compensación orientativa', v: importe, accent: true },
+        ],
+        note: 'Orientativo: no se cobra si la causa es una circunstancia extraordinaria (temporal, huelga de control aéreo) ni si te avisaron con más de 14 días. El reembolso del billete sí te corresponde siempre.',
+      }
+    }
+
+    case 'gone': {
+      const aterriza = flight.estimate?.from
+      if (!aterriza) return null
+      const puerta = plusMinutes(aterriza, flight.hasCheckedBags ? 45 : 20)
+      return {
+        label: '🚪 Si vienes a recoger a alguien',
+        cards: [
+          { k: 'Aterriza sobre las', v: aterriza },
+          { k: 'Sale por la puerta a las', v: puerta, accent: true },
+        ],
+        note: 'Aterrizar no es salir: hay que rodar, desembarcar y cruzar la terminal. Suma 25 minutos más si lleva maleta facturada.',
+      }
+    }
+
+    default:
+      return null
+  }
+}
+
 export function deriveVerdict(flight) {
+  const verdict = computeVerdict(flight)
+  return { ...verdict, panel: buildPanel(flight, verdict.key) }
+}
+
+function computeVerdict(flight) {
   const { status, rotation, delayMin } = flight
   const pending = legsBefore(rotation)
   const salida = effectiveDeparture(flight)
@@ -77,7 +246,7 @@ export function deriveVerdict(flight) {
       title: 'Tu vuelo está cancelado',
       text: `La aerolínea ha cancelado el ${flight.code} de las ${flight.departure.scheduled}. Contacta con ellos para que te reubiquen: tienen que ofrecerte transporte alternativo o el reembolso.`,
       advice:
-        'Si te lo han comunicado con menos de 14 días de antelación, el reglamento europeo 261/2004 puede darte derecho a una compensación además del reembolso.',
+        'Guarda la tarjeta de embarque y los emails de la aerolínea: es lo primero que te piden si reclamas.',
     }
   }
 
