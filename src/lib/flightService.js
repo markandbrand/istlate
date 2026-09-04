@@ -143,10 +143,15 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
       )
     }
 
-    // 2) Si ya hay avión asignado, sus tramos de hoy → la rotación.
-    const reg = flight.aircraft?.reg
-    const aircraftFlights = reg
-      ? await callProvider(`/flights/reg/${encodeURIComponent(reg)}/${today()}?${OPCIONES}`, env)
+    // 2) Los tramos de ese avión hoy → la rotación.
+    //
+    // Se busca por matrícula cuando la hay y, si no, por Mode-S: en respuestas
+    // reales `reg` puede faltar mientras `modeS` sí viene, y ambos identifican
+    // al mismo avión (enum FlightSearchByEnum: number, reg, callSign, icao24).
+    const { reg, modeS } = flight.aircraft ?? {}
+    const buscarPor = reg ? `reg/${encodeURIComponent(reg)}` : modeS ? `icao24/${encodeURIComponent(modeS)}` : null
+    const aircraftFlights = buscarPor
+      ? await callProvider(`/flights/${buscarPor}/${today()}?${OPCIONES}`, env)
       : []
 
     const result = toInternal(flight, aircraftFlights)

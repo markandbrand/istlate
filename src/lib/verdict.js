@@ -128,13 +128,47 @@ function analyse(flight) {
 }
 
 /**
+ * Datos que necesita el panel de cada estado.
+ *
+ * Los fixtures los traen todos; una respuesta real, de momento, casi ninguno
+ * (los vamos calculando). Sin esta comprobación, un campo ausente reventaba la
+ * tarjeta entera en vez de limitarse a no pintar el panel.
+ */
+const PANEL_REQUIERE = {
+  parked: (fl, x) => x.waitingMin != null,
+  overnight: (fl) => Boolean(fl.lastFlewAt),
+  onTime: (fl) => fl.minTurnaroundMin != null && fl.turnaroundMin != null,
+  risk: (fl) => Boolean(fl.tippingPoint),
+  late: (fl) => Boolean(fl.estimate),
+  diverted: (fl) => fl.extraKm != null,
+  unassigned: (fl) => Boolean(fl.knownBy),
+  canceledUncertain: (fl) => fl.lastCheckedMin != null,
+  canceled: () => true,
+  gone: (fl) => Boolean(fl.estimate),
+}
+
+/**
  * @param {object} flight  vuelo en la forma interna
  * @param {object} copy    diccionario del idioma activo (src/i18n/<lang>.js)
  */
 export function deriveVerdict(flight, copy) {
   const { key, x } = analyse(flight)
   const words = copy.verdict[key](flight, x)
-  const buildPanel = copy.panel[key]
-  const panel = buildPanel && (key !== 'late' || flight.estimate) ? buildPanel(flight, x) : null
-  return { key, tone: TONE_BY_KEY[key], ...words, panel }
+  return { key, tone: TONE_BY_KEY[key], ...words, panel: buildPanelSafely(flight, x, key, copy) }
+}
+
+/**
+ * El panel es información de apoyo: si le falta un dato, se calla. Nunca debe
+ * tumbar la tarjeta, que es lo que el usuario ha venido a leer.
+ */
+function buildPanelSafely(flight, x, key, copy) {
+  const build = copy.panel[key]
+  const requisito = PANEL_REQUIERE[key]
+  if (!build || (requisito && !requisito(flight, x))) return null
+  try {
+    return build(flight, x)
+  } catch (err) {
+    console.warn(`[isitlate] no se pudo construir el panel "${key}":`, err)
+    return null
+  }
 }

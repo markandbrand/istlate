@@ -215,10 +215,30 @@ vuelve a desplegar. La función deja de devolver datos de ejemplo sola.
 - ~~La ruta exacta de los endpoints.~~ **Verificada** en la consola de RapidAPI:
   `GET /flights/number/{numeroDeVuelo}/{fecha}` sobre `aerodatabox.p.rapidapi.com`, con los
   opcionales `withAircraftImage`, `withLocation`, `withFlightPlan` y `dateLocalRole`.
-- **El anidamiento de los objetos de tiempo** (`scheduledTime`, `revisedTime`), para rematar
-  `hhmm()` en `src/lib/adapter.js`.
+- ~~El anidamiento de los objetos de tiempo.~~ **Verificado**: llegan como
+  `{ utc, local }` con el formato `"2026-01-02 16:10+01:00"`, y `hhmm()` los lee bien.
 - **Qué devuelve exactamente un vuelo cancelado**, que es el estado peor cubierto por todos
   los proveedores.
+- **Desde cuántas horas antes viene la identificación del avión.** Sigue siendo la pregunta
+  que decide con cuánta antelación funciona el producto: hay que sondear un vuelo que aún no
+  haya salido, no uno ya aterrizado.
+
+### Lo que enseñó la primera respuesta real
+
+Tres cosas que ninguna documentación decía y que habrían roto el producto en producción:
+
+- **El estado llega en PascalCase** (`"Arrived"`), no en el camelCase de su esquema. Sin
+  normalizar, el motor no reconocía ni un estado y todos los vuelos acababan en "todavía no
+  sabemos qué avión te toca". Lo arregla `normalizeStatus()`.
+- **`aircraft.reg` puede no venir, pero `aircraft.modeS` sí.** El Mode-S identifica al mismo
+  avión y sirve igual para encadenar la rotación (`/flights/icao24/{modeS}`), así que la
+  ausencia de matrícula ya no se confunde con "no hay avión asignado".
+- **La distancia la da el propio API** (`greatCircleDistance.km`), así que el panel de
+  compensación del 261/2004 deja de depender de un dato inventado.
+
+Y un cuarto que solo aparece con datos reales: los paneles daban por hecho que existían
+campos que hoy solo traen los fixtures. Ahora `PANEL_REQUIERE` comprueba antes de construir
+y el panel se calla en vez de tumbar la tarjeta.
 
 ### Coste estimado
 

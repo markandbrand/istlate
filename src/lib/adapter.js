@@ -16,6 +16,25 @@
  * en su playground antes de dar esto por bueno.
  */
 
+/** Los estados que entiende el motor de veredicto. */
+const ESTADOS = new Set([
+  'expected', 'checkIn', 'boarding', 'gateClosed', 'departed', 'enRoute',
+  'approaching', 'arrived', 'delayed', 'diverted', 'canceled',
+  'canceledUncertain', 'unknown',
+])
+
+/**
+ * AeroDataBox devuelve el estado en PascalCase ("Arrived", "CanceledUncertain")
+ * mientras que su esquema lo documenta en camelCase. Verificado contra una
+ * respuesta real: sin esta normalización el motor no reconocía ni un estado y
+ * todos los vuelos acababan en "todavía no sabemos qué avión te toca".
+ */
+export function normalizeStatus(raw) {
+  if (!raw) return 'unknown'
+  const key = raw.charAt(0).toLowerCase() + raw.slice(1)
+  return ESTADOS.has(key) ? key : 'unknown'
+}
+
 /** Extrae "hh:mm" de un tiempo de AeroDataBox ({ local, utc } o string). */
 export function hhmm(time) {
   if (!time) return null
@@ -52,8 +71,9 @@ export function buildRotation(yourFlight, aircraftFlights = []) {
   const previous = aircraftFlights.filter((f) => f.number !== yourNumber)
 
   const legs = previous.map((f) => {
-    const salido = ['departed', 'enRoute', 'approaching'].includes(f.status)
-    const llegado = f.status === 'arrived'
+    const estado = normalizeStatus(f.status)
+    const salido = ['departed', 'enRoute', 'approaching'].includes(estado)
+    const llegado = estado === 'arrived'
     const state = llegado ? 'done' : salido ? 'active' : 'pending'
     const delay = delayMinutes(f.departure)
 
@@ -103,11 +123,16 @@ export function turnaround(yourFlight, aircraftFlights = []) {
  * @param {object[]} aircraftInfo  ficha del avión (opcional, para la edad)
  */
 export function toInternal(flight, aircraftFlights = [], aircraftInfo = null) {
+  // La matrícula no siempre viene; el Mode-S (dirección ICAO de 24 bits) sí, y
+  // sirve igual para encadenar la consulta de la rotación. Que falte `reg` no
+  // significa que no sepamos qué avión es.
   const reg = flight.aircraft?.reg ?? null
+  const modeS = flight.aircraft?.modeS ?? null
+  const identificado = Boolean(reg || modeS)
 
   return {
     code: flight.number,
-    status: flight.status ?? 'unknown',
+    status: normalizeStatus(flight.status),
     airline: flight.airline?.name ?? null,
     route: {
       from: { city: city(flight.departure), iata: iata(flight.departure) },
@@ -119,16 +144,22 @@ export function toInternal(flight, aircraftFlights = [], aircraftInfo = null) {
       terminal: flight.departure?.terminal ?? null,
       gate: flight.departure?.gate ?? null,
     },
-    aircraft: reg
+    aircraft: identificado
       ? {
           reg,
+          modeS,
           model: flight.aircraft?.model ?? aircraftInfo?.model ?? 'Avión sin identificar',
           ageYears: aircraftInfo?.ageYears ?? null,
         }
       : null,
     delayMin: accumulatedDelay(aircraftFlights),
     turnaroundMin: turnaround(flight, aircraftFlights),
+    // La distancia la da el propio API, así que el panel de compensación del
+    // 261/2004 deja de depender de un dato inventado en los fixtures.
+    distanceKm: flight.greatCircleDistance?.km ?? null,
+    lastUpdatedUtc: flight.lastUpdatedUtc ?? null,
+    quality: flight.departure?.quality ?? [],
     estimate: null, // se calcula en el backend cuando haya datos suficientes
-    rotation: reg ? buildRotation(flight, aircraftFlights) : [],
+    rotation: identificado ? buildRotation(flight, aircraftFlights) : [],
   }
 }

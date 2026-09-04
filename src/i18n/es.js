@@ -239,14 +239,17 @@ export default {
     }),
 
     // Europa: reglamento (CE) 261/2004, compensación por tramos de distancia.
-    canceled: (fl, x) => ({
+    canceled: (fl, x) => {
+      if (!x.compensation) return null
+      return {
       label: '⚖️ Lo que te pueden deber',
       cards: [
         { k: 'Distancia del vuelo', v: f.distance(fl.distanceKm) },
         { k: 'Compensación orientativa', v: x.compensation, accent: true },
       ],
       note: 'Orientativo: no se cobra si la causa es una circunstancia extraordinaria (temporal, huelga de control aéreo) ni si te avisaron con más de 14 días. El reembolso del billete sí te corresponde siempre.',
-    }),
+      }
+    },
 
     gone: (fl, x) => ({
       label: '🚪 Si vienes a recoger a alguien',
