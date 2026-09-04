@@ -48,11 +48,14 @@ const headers = esRapidApi
   ? { 'X-RapidAPI-Key': KEY, 'X-RapidAPI-Host': HOST, Accept: 'application/json' }
   : { 'x-magicapi-key': KEY, Authorization: `Bearer ${KEY}`, Accept: 'application/json' }
 
-/** Rutas candidatas: la primera que responda 200 es la buena. */
+/** Opciones copiadas de la consola de RapidAPI. */
+const OPCIONES = 'withAircraftImage=false&withLocation=false&withFlightPlan=false&dateLocalRole=Both'
+
+/** La primera está verificada en su consola; las demás son red de seguridad. */
 const CANDIDATAS = [
+  `/flights/number/${code}/${date}?${OPCIONES}`,
   `/flights/number/${code}/${date}`,
   `/flights/number/${code}`,
-  `/flights/Number/${code}/${date}`,
 ]
 
 async function intentar(ruta) {
@@ -124,7 +127,7 @@ console.log(`\n  Respuesta completa guardada en ${salida}`)
 
 if (reg) {
   console.log(`\n  → Hay matrícula. Ahora los tramos de ese avión hoy:`)
-  const r2 = await intentar(`/flights/reg/${encodeURIComponent(reg)}/${date}`)
+  const r2 = await intentar(`/flights/reg/${encodeURIComponent(reg)}/${date}?${OPCIONES}`)
   console.log(`    ${marca(r2.status === 200)} ${r2.status} ${r2.ruta}`)
   if (r2.status === 200) {
     const tramos = Array.isArray(r2.cuerpo) ? r2.cuerpo : (r2.cuerpo.flights ?? [r2.cuerpo])

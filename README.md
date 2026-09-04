@@ -212,9 +212,9 @@ vuelve a desplegar. La función deja de devolver datos de ejemplo sola.
 
 ### Lo que queda por confirmar
 
-- **La ruta exacta de los endpoints.** `src/lib/flightService.js` usa
-  `/flights/number/{code}/{fecha}`, deducida de su esquema pero sin verificar. La sonda lo
-  resuelve; si ninguna candidata responde, copia la URL del playground de AeroDataBox.
+- ~~La ruta exacta de los endpoints.~~ **Verificada** en la consola de RapidAPI:
+  `GET /flights/number/{numeroDeVuelo}/{fecha}` sobre `aerodatabox.p.rapidapi.com`, con los
+  opcionales `withAircraftImage`, `withLocation`, `withFlightPlan` y `dateLocalRole`.
 - **El anidamiento de los objetos de tiempo** (`scheduledTime`, `revisedTime`), para rematar
   `hhmm()` en `src/lib/adapter.js`.
 - **Qué devuelve exactamente un vuelo cancelado**, que es el estado peor cubierto por todos

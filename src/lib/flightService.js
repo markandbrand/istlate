@@ -62,12 +62,27 @@ const json = (body, status = 200, headers = {}) =>
 const today = () => new Date().toISOString().slice(0, 10)
 
 /**
+ * Parámetros opcionales, copiados de la consola de RapidAPI.
+ *
+ * Las imágenes de avión y el plan de vuelo engordan la respuesta y no los
+ * usamos todavía. `withLocation` daría la posición en vivo del avión, que sí
+ * nos interesará el día que queramos pintar "tu avión está sobre los
+ * Pirineos": activarlo entonces y comprobar si cambia el coste en unidades.
+ */
+const OPCIONES = new URLSearchParams({
+  withAircraftImage: 'false',
+  withLocation: 'false',
+  withFlightPlan: 'false',
+  dateLocalRole: 'Both',
+})
+
+/**
  * Llama a AeroDataBox.
  *
- * Rutas según su esquema: /flights/{searchBy}/{searchParam}/{date}, donde
- * searchBy ∈ { number, reg, callSign, icao24 } (enum FlightSearchByEnum).
- * CONFIRMA la ruta y el host exactos en su playground: cambian entre el
- * acceso directo y el de RapidAPI.
+ * Ruta verificada en la consola de RapidAPI:
+ *   GET /flights/number/{numeroDeVuelo}/{fecha}
+ * donde el segmento tras /flights/ admite number, reg, callSign o icao24
+ * (enum FlightSearchByEnum de su esquema).
  */
 async function callProvider(path, env) {
   const host = env.AERODATABOX_HOST || 'aerodatabox.p.rapidapi.com'
@@ -120,7 +135,7 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
 
   try {
     // 1) El vuelo del usuario → nos da la matrícula asignada.
-    const [flight] = await callProvider(`/flights/number/${code}/${today()}`, env)
+    const [flight] = await callProvider(`/flights/number/${code}/${today()}?${OPCIONES}`, env)
     if (!flight) {
       return json(
         { error: 'not_found', message: `No encontramos el vuelo ${code} para hoy.` },
@@ -131,7 +146,7 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
     // 2) Si ya hay avión asignado, sus tramos de hoy → la rotación.
     const reg = flight.aircraft?.reg
     const aircraftFlights = reg
-      ? await callProvider(`/flights/reg/${encodeURIComponent(reg)}/${today()}`, env)
+      ? await callProvider(`/flights/reg/${encodeURIComponent(reg)}/${today()}?${OPCIONES}`, env)
       : []
 
     const result = toInternal(flight, aircraftFlights)
