@@ -7,6 +7,36 @@ X minutos".
 > **Modo demo.** Todavía no hay ninguna API de vuelos conectada: cualquier número de vuelo
 > devuelve la misma rotación de ejemplo, rotulada con el código que escribas.
 
+## 📍 Dónde estamos
+
+**Listo y funcionando:** la web bilingüe con los diez estados, el motor de veredicto, el
+backend con caché y rate limit, y el despliegue configurado para Netlify y Cloudflare. Se
+puede publicar hoy: sin key, arranca en modo demo.
+
+**La key de AeroDataBox ya existe** (plan Basic gratuito, RapidAPI) y **la conexión está
+probada**: una consulta real devolvió 200 OK y con ella se corrigieron cuatro bugs del
+adaptador.
+
+**El siguiente paso, y el único que bloquea todo lo demás:**
+
+> Sondear un vuelo **que todavía no haya salido** (dentro de 3–6 horas) y mirar si el bloque
+> `aircraft` de la respuesta trae `reg` o `modeS`.
+
+Esa es la pregunta que decide con cuánta antelación funciona el producto. La prueba hecha
+hasta ahora usó un vuelo ya aterrizado, así que no la responde.
+
+Cómo sondear, sin instalar nada, desde la consola de RapidAPI:
+
+1. AeroDataBox → barra lateral → **Flight API › Flight status (specific date)**
+2. Pestaña **Params**: número de vuelo real de hoy y fecha de hoy (`AAAA-MM-DD`)
+3. Botón azul **▷ Run**
+4. Pestaña **Results › Response › Raw** → ahí está la respuesta
+
+Con terminal, lo mismo en un comando: `npm run probe -- VY1234`
+
+**Pendiente menor:** rotar la key de RapidAPI antes de que la web sea pública (se compartió
+en una captura durante el desarrollo). Con plan gratuito y tope duro el riesgo hoy es nulo.
+
 ## Stack
 
 - [React 19](https://react.dev)
