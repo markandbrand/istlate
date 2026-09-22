@@ -5,7 +5,15 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# SPA: cualquier ruta cae en index.html
+# La función de vuelos va ANTES del comodín. Si no, el fallback del SPA se
+# come /api/flight y la web devuelve el HTML en vez de los datos, que es el
+# fallo clásico al desplegar esto.
+[[redirects]]
+  from = "/api/flight"
+  to = "/.netlify/functions/flight"
+  status = 200
+
+# SPA: cualquier otra ruta cae en index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"

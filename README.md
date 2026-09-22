@@ -248,6 +248,11 @@ Sin key, sigue en modo demo.
 
 ### 5. Despliega
 
+**Cuidado con el orden de los redirects.** El fallback del SPA (`/*` → `/index.html`) se
+traga `/api/flight` si va primero, y la web devuelve el HTML en lugar de los datos. Por eso
+`netlify.toml` y `public/_redirects` declaran la ruta de la función **antes** del comodín.
+
+
 Pon **`AERODATABOX_KEY`** en el panel del host (Netlify: *Site settings → Environment
 variables*; Cloudflare Pages: *Settings → Environment variables*), **sin prefijo `VITE_`**, y
 vuelve a desplegar. La función deja de devolver datos de ejemplo sola.

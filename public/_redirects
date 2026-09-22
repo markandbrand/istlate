@@ -1,1 +1,5 @@
+# La API primero: el comodín de abajo se la comería.
+/api/flight  /.netlify/functions/flight  200
+
+# SPA: el resto cae en index.html
 /*  /index.html  200
