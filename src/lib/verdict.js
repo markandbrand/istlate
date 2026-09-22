@@ -115,7 +115,11 @@ function analyse(flight) {
   if (status === 'canceledUncertain') return { key: 'canceledUncertain', x: base }
   if (status === 'diverted') return { key: 'diverted', x: base }
 
-  if (status === 'unknown' || !flight.aircraft) {
+  // Saber el modelo no basta: sin matrícula ni Mode-S no hay rotación que
+  // contar, y eso es exactamente lo que devuelve el proveedor a 8 h de la
+  // salida. Por eso se pregunta por la trazabilidad, no por si hay avión.
+  const traceable = Boolean(flight.aircraft?.reg || flight.aircraft?.modeS)
+  if (status === 'unknown' || !traceable) {
     return { key: 'unassigned', x: { ...base, ...trackRecord(flight.history) } }
   }
 

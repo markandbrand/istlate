@@ -56,6 +56,18 @@ export function delayMinutes(movement) {
   return Math.max(0, diff)
 }
 
+/** Cuánto se desvía la predicción del proveedor respecto a lo programado. */
+export function predictedDelay(movement) {
+  const scheduled = hhmm(movement?.scheduledTime)
+  const predicted = hhmm(movement?.predictedTime)
+  if (!scheduled || !predicted) return 0
+  const toMin = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5))
+  let diff = toMin(predicted) - toMin(scheduled)
+  if (diff < -720) diff += 1440
+  if (diff > 720) diff -= 1440
+  return Math.max(0, diff)
+}
+
 const city = (movement) =>
   movement?.airport?.municipalityName ?? movement?.airport?.shortName ?? movement?.airport?.name ?? '—'
 const iata = (movement) => movement?.airport?.iata ?? movement?.airport?.icao ?? '—'
@@ -123,12 +135,17 @@ export function turnaround(yourFlight, aircraftFlights = []) {
  * @param {object[]} aircraftInfo  ficha del avión (opcional, para la edad)
  */
 export function toInternal(flight, aircraftFlights = [], aircraftInfo = null) {
-  // La matrícula no siempre viene; el Mode-S (dirección ICAO de 24 bits) sí, y
-  // sirve igual para encadenar la consulta de la rotación. Que falte `reg` no
-  // significa que no sepamos qué avión es.
+  // Tres niveles de conocimiento sobre el avión, y conviene no confundirlos:
+  //   · matrícula o Mode-S → sabemos QUÉ avión concreto es, y podemos seguir
+  //     su rotación. Verificado: a 8 h de la salida todavía no vienen.
+  //   · solo el modelo → sabemos en qué TIPO de avión vas a volar, que es poco
+  //     pero no es nada, y se puede contar.
+  //   · nada → ni eso.
   const reg = flight.aircraft?.reg ?? null
   const modeS = flight.aircraft?.modeS ?? null
-  const identificado = Boolean(reg || modeS)
+  const model = flight.aircraft?.model ?? aircraftInfo?.model ?? null
+  // Solo con matrícula o Mode-S se puede reconstruir la rotación.
+  const traceable = Boolean(reg || modeS)
 
   return {
     code: flight.number,
@@ -144,13 +161,8 @@ export function toInternal(flight, aircraftFlights = [], aircraftInfo = null) {
       terminal: flight.departure?.terminal ?? null,
       gate: flight.departure?.gate ?? null,
     },
-    aircraft: identificado
-      ? {
-          reg,
-          modeS,
-          model: flight.aircraft?.model ?? aircraftInfo?.model ?? 'Avión sin identificar',
-          ageYears: aircraftInfo?.ageYears ?? null,
-        }
+    aircraft: reg || modeS || model
+      ? { reg, modeS, model: model ?? 'Avión sin identificar', ageYears: aircraftInfo?.ageYears ?? null }
       : null,
     delayMin: accumulatedDelay(aircraftFlights),
     turnaroundMin: turnaround(flight, aircraftFlights),
@@ -159,7 +171,12 @@ export function toInternal(flight, aircraftFlights = [], aircraftInfo = null) {
     distanceKm: flight.greatCircleDistance?.km ?? null,
     lastUpdatedUtc: flight.lastUpdatedUtc ?? null,
     quality: flight.departure?.quality ?? [],
-    estimate: null, // se calcula en el backend cuando haya datos suficientes
-    rotation: identificado ? buildRotation(flight, aircraftFlights) : [],
+    // AeroDataBox publica su propia predicción de llegada, y la da incluso
+    // cuando todavía no hay avión asignado. Es la mejor señal disponible en el
+    // momento en el que menos sabemos.
+    predictedArrival: hhmm(flight.arrival?.predictedTime),
+    predictedDelayMin: predictedDelay(flight.arrival),
+    estimate: null, // TODO: calcularlo cruzando la rotación con predictedArrival
+    rotation: traceable ? buildRotation(flight, aircraftFlights) : [],
   }
 }
