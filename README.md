@@ -260,17 +260,18 @@ vuelve a desplegar. La función deja de devolver datos de ejemplo sola.
   `{ utc, local }` con el formato `"2026-01-02 16:10+01:00"`, y `hhmm()` los lee bien.
 - **Qué devuelve exactamente un vuelo cancelado**, que es el estado peor cubierto por todos
   los proveedores.
-- **Desde cuántas horas antes viene la identificación del avión.** Medido a **7,8 h** de la
-  salida (IB 2401 VLC→PMI, 22/09/2026, estado `Expected`): **no viene ni matrícula ni
-  Mode-S**, solo el modelo (`Bombardier CRJX`). Falta acotar el momento en que aparecen
-  repitiendo la consulta más cerca de la salida.
+- **Desde cuántas horas antes viene la identificación del avión.** Medido a **2,5 h** de la
+  salida (IB 2401 VLC→PMI, 22/09/2026, salida 20:10, consultado a las 17:35, estado
+  `Expected`): **no viene ni matrícula ni Mode-S**, solo el modelo (`Bombardier CRJX`).
+  Falta acotar si aparecen al despegar o solo después de aterrizar.
 
 ### Lo que enseñó la primera consulta a un vuelo sin salir
 
-- **A 8 horas de la salida no se sabe qué avión concreto vuela.** Llega el modelo, pero ni
-  matrícula ni Mode-S, así que no hay rotación que reconstruir. El estado `unassigned` no es
-  un caso raro: es lo que ve todo el que consulte con antelación, y por eso el panel con el
-  historial del vuelo es una pieza central del producto, no un parche.
+- **A 2,5 horas de la salida todavía no se sabe qué avión concreto vuela.** Llega el modelo,
+  pero ni matrícula ni Mode-S, así que no hay rotación que reconstruir. El estado
+  `unassigned` no es un caso raro: es lo que ve casi todo el que consulte antes de ir al
+  aeropuerto, y por eso el panel con el historial del vuelo es una pieza central del
+  producto, no un parche.
 - **Saber el modelo no es saber el avión.** El adaptador distingue ahora los dos niveles:
   `aircraft` se rellena si hay modelo (para poder contar en qué vas a volar) y `traceable`
   marca si además hay matrícula o Mode-S (lo único que permite seguir la rotación).

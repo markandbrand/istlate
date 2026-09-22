@@ -16,10 +16,10 @@ const FLIGHT_CODE = /^[A-Z0-9]{2,3}\d{1,4}$/
 /**
  * Caché adaptativa.
  *
- * Medido con un vuelo real: su ficha no se tocó en 5,3 horas (mismo
- * `lastUpdatedUtc` en dos consultas separadas por toda la tarde). El proveedor
- * solo actualiza cuando algo cambia, así que cachear 90 s un vuelo que sale
- * mañana es tirar unidades del plan gratuito a la basura.
+ * Medido con un vuelo real: consultado a las 15:44 UTC, su `lastUpdatedUtc`
+ * marcaba las 10:24 UTC. Cinco horas sin que el proveedor tocara la ficha,
+ * porque nada del vuelo había cambiado. Cachear 90 s un vuelo que sale dentro
+ * de horas es, por tanto, tirar unidades del plan gratuito a la basura.
  *
  * Cerca de la salida sí conviene refrescar: es cuando aparecen avión, puerta y
  * retrasos.
