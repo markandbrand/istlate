@@ -63,6 +63,7 @@ export default {
   },
 
   scenarios: {
+    boarding: 'Boarding',
     late: 'Running late',
     risk: 'Could go sideways',
     onTime: "You're good",
@@ -76,6 +77,22 @@ export default {
   },
 
   verdict: {
+    boarding: (fl, x) => ({
+      badge: x.phase === 'gateClosed' ? 'Gate closed' : 'Boarding',
+      emoji: x.phase === 'gateClosed' ? '🚪' : '🧳',
+      title:
+        x.phase === 'gateClosed'
+          ? "Gate's closed — your plane is about to push back"
+          : 'They’re boarding now',
+      text:
+        x.predictedDelayMin >= 15
+          ? `You're leaving right about on time, but keep an eye on the arrival: the airline says one thing and the flight data says ${f.plural(x.predictedDelayMin, 'minute', 'minutes')} later.`
+          : 'Everything lines up, no surprises in sight. Have a good flight.',
+      advice:
+        fl.departure.gate && x.phase !== 'gateClosed'
+          ? `Gate ${fl.departure.gate}. Don't dawdle.`
+          : null,
+    }),
     unassigned: () => ({
       badge: 'Not known yet',
       emoji: '🕐',
@@ -170,6 +187,17 @@ export default {
   },
 
   panel: {
+    boarding: (fl, x) => ({
+      label: '🔮 Our call',
+      cards: [
+        { k: 'Airline says you land at', v: f.time(fl.arrival.revised ?? fl.arrival.scheduled) },
+        { k: 'We say', v: f.time(fl.arrival.predicted), accent: true },
+      ],
+      note:
+        x.predictedDelayMin >= 15
+          ? `The airline hasn't moved its number yet, but the flight data says ${f.plural(x.predictedDelayMin, 'minute', 'minutes')} later. If somebody's picking you up, give them a heads up.`
+          : 'Airline and flight data agree. Nothing to watch here.',
+    }),
     parked: (fl, x) => ({
       label: '☕ In the meantime',
       cards: [

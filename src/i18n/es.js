@@ -64,6 +64,7 @@ export default {
   },
 
   scenarios: {
+    boarding: 'Embarcando',
     late: 'Va tarde',
     risk: 'Riesgo',
     onTime: 'En hora',
@@ -77,6 +78,22 @@ export default {
   },
 
   verdict: {
+    boarding: (fl, x) => ({
+      badge: x.phase === 'gateClosed' ? 'Puerta cerrada' : 'Embarcando',
+      emoji: x.phase === 'gateClosed' ? '🚪' : '🧳',
+      title:
+        x.phase === 'gateClosed'
+          ? 'Puerta cerrada, tu avión está a punto de salir'
+          : 'Ya están embarcando',
+      text:
+        x.predictedDelayMin >= 15
+          ? `Sales prácticamente a tu hora, pero ojo con la llegada: la aerolínea dice una cosa y los datos de vuelo apuntan a ${f.plural(x.predictedDelayMin, 'minuto', 'minutos')} más tarde.`
+          : 'Todo en orden y sin sorpresas a la vista. Buen vuelo.',
+      advice:
+        fl.departure.gate && x.phase !== 'gateClosed'
+          ? `Puerta ${fl.departure.gate}. No te entretengas.`
+          : null,
+    }),
     unassigned: () => ({
       badge: 'Todavía no se sabe',
       emoji: '🕐',
@@ -171,6 +188,17 @@ export default {
   },
 
   panel: {
+    boarding: (fl, x) => ({
+      label: '🔮 Nuestra previsión',
+      cards: [
+        { k: 'Llegada según la aerolínea', v: f.time(fl.arrival.revised ?? fl.arrival.scheduled) },
+        { k: 'Nuestra estimación', v: f.time(fl.arrival.predicted), accent: true },
+      ],
+      note:
+        x.predictedDelayMin >= 15
+          ? `La aerolínea aún no ha movido su hora, pero los datos de vuelo dicen ${f.plural(x.predictedDelayMin, 'minuto', 'minutos')} más. Si alguien viene a recogerte, avísale.`
+          : 'Aerolínea y datos de vuelo coinciden. Nada que vigilar.',
+    }),
     parked: (fl, x) => ({
       label: '☕ Mientras tanto',
       cards: [

@@ -144,6 +144,7 @@ dato que hace que la app se sienta la más fácil del mundo para enterarte de lo
 | `unassigned` | 📊 Cómo se porta este vuelo | Puntualidad de los últimos 7 días |
 | `canceledUncertain` | 📡 Cómo de fresco es esto | Hace cuánto lo comprobamos |
 | `canceled` | ⚖️ Lo que te pueden deber | Compensación orientativa según distancia |
+| `boarding` | 🔮 Nuestra previsión | Llegada según la aerolínea vs. nuestra estimación |
 | `gone` | 🚪 Si vienes a recoger a alguien | A qué hora sale de verdad por la puerta |
 
 El panel de `unassigned` es el que resuelve el hueco más incómodo del producto: cuando la
@@ -260,10 +261,37 @@ vuelve a desplegar. La función deja de devolver datos de ejemplo sola.
   `{ utc, local }` con el formato `"2026-01-02 16:10+01:00"`, y `hhmm()` los lee bien.
 - **Qué devuelve exactamente un vuelo cancelado**, que es el estado peor cubierto por todos
   los proveedores.
-- **Desde cuántas horas antes viene la identificación del avión.** Medido a **2,5 h** de la
-  salida (IB 2401 VLC→PMI, 22/09/2026, salida 20:10, consultado a las 17:35, estado
-  `Expected`): **no viene ni matrícula ni Mode-S**, solo el modelo (`Bombardier CRJX`).
-  Falta acotar si aparecen al despegar o solo después de aterrizar.
+- ~~Desde cuántas horas antes viene la identificación del avión.~~ **Respondido, y cambia el
+  producto.** Ver abajo.
+
+### La identificación del avión llega al despegar, no antes
+
+Tres mediciones sobre vuelos reales el 22/09/2026:
+
+| Momento | Estado | ¿Matrícula o Mode-S? |
+|---|---|---|
+| A 2,5 h de la salida | `Expected` | ❌ solo el modelo |
+| Con la puerta ya cerrada | `GateClosed` | ❌ solo el modelo |
+| Vuelo ya aterrizado | `Arrived` | ✅ `modeS` |
+
+El `modeS` es la dirección del transpondedor: el proveedor lo saca de **escuchar al avión en
+el aire**, no de la programación de la aerolínea. Conclusión: **con este API no se puede
+saber qué avión concreto operará tu vuelo antes de que despegue.**
+
+Eso tumba la rotación previa tal y como se había imaginado… y a la vez aparece algo mejor.
+
+### El producto no necesitaba la rotación
+
+La promesa era "no te fíes de lo que dice la aerolínea, te contamos lo que va a pasar de
+verdad". La rotación era el *mecanismo* para calcularlo. Pero el proveedor **ya publica su
+propia predicción** (`arrival.predictedTime`), y no coincide con la aerolínea:
+
+> Vuelo IB 1082, puerta cerrada. La aerolínea decía llegada a las **18:35**. La predicción
+> decía **18:59**. Veinticuatro minutos de diferencia, en datos de hace trece minutos.
+
+Eso es exactamente la tarjeta "Dice la aerolínea / Nuestra estimación", funcionando con datos
+reales, **sin necesitar la matrícula**. La rotación pasa de ser el motor del producto a ser
+un extra para quien consulta a última hora o viene a recoger a alguien.
 
 ### Lo que enseñó la primera consulta a un vuelo sin salir
 

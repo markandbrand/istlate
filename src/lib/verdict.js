@@ -34,6 +34,7 @@ export const TONE_BY_KEY = {
   canceledUncertain: 'alert',
   unassigned: 'blue',
   gone: 'slate',
+  boarding: 'blue',
 }
 
 /** Resta minutos a una hora "hh:mm" y la devuelve en el mismo formato. */
@@ -70,6 +71,14 @@ export function compensation(km) {
 /** Salida efectiva: la revisada por la aerolínea si existe, si no la programada. */
 export const effectiveDeparture = (flight) =>
   flight.departure.revised ?? flight.departure.scheduled
+
+/** Cuánto se desvía la predicción de llegada respecto a lo que dice la aerolínea. */
+function predictedDelay(flight) {
+  const { revised, scheduled, predicted } = flight.arrival ?? {}
+  const referencia = revised ?? scheduled
+  if (!referencia || !predicted) return 0
+  return Math.max(0, minutesBetween(referencia, predicted) ?? 0)
+}
 
 /** Tramos que el avión aún tiene que volar antes de venir a por ti. */
 const legsBefore = (rotation) =>
@@ -115,12 +124,22 @@ function analyse(flight) {
   if (status === 'canceledUncertain') return { key: 'canceledUncertain', x: base }
   if (status === 'diverted') return { key: 'diverted', x: base }
 
-  // Saber el modelo no basta: sin matrícula ni Mode-S no hay rotación que
-  // contar, y eso es exactamente lo que devuelve el proveedor a 8 h de la
-  // salida. Por eso se pregunta por la trazabilidad, no por si hay avión.
-  const traceable = Boolean(flight.aircraft?.reg || flight.aircraft?.modeS)
-  if (status === 'unknown' || !traceable) {
-    return { key: 'unassigned', x: { ...base, ...trackRecord(flight.history) } }
+  // La FASE del vuelo manda sobre todo lo demás. Un vuelo embarcando o ya en
+  // el aire es eso, se pueda o no seguir el rastro del avión: verificado que
+  // el proveedor no da matrícula ni Mode-S ni con la puerta ya cerrada, así
+  // que preguntar antes por la trazabilidad mandaba estos vuelos al estado
+  // "todavía no sabemos qué avión te toca", que es justo lo que no importa
+  // cuando estás embarcando.
+  // Facturando, embarcando o con la puerta cerrada: el vuelo está a punto de
+  // salir. Verificado que ocurre de verdad (estado GateClosed en un vuelo real
+  // a minutos de empujar), y hasta ahora caía en "no sabemos qué avión te
+  // toca", que es la peor respuesta posible en ese momento.
+  if (['checkIn', 'boarding', 'gateClosed'].includes(status)) {
+    const desvio = predictedDelay(flight)
+    return {
+      key: 'boarding',
+      x: { ...base, phase: status, predictedDelayMin: desvio, tone: desvio >= RUIDO_MIN ? 'amber' : 'green' },
+    }
   }
 
   if (['departed', 'enRoute', 'approaching', 'arrived'].includes(status)) {
@@ -129,6 +148,17 @@ function analyse(flight) {
       key: 'gone',
       x: { ...base, landed: status === 'arrived', gateOutAt: plusMinutes(flight.estimate?.from, espera) },
     }
+  }
+
+  // Para un vuelo que aún no se ha movido, sí decide la trazabilidad: sin
+  // matrícula ni Mode-S no hay rotación que reconstruir, y eso es lo que
+  // devuelve el proveedor hasta que el avión despega. Saber el modelo no basta.
+  // Saber el modelo no basta: sin matrícula ni Mode-S no hay rotación que
+  // contar, y eso es exactamente lo que devuelve el proveedor a 8 h de la
+  // salida. Por eso se pregunta por la trazabilidad, no por si hay avión.
+  const traceable = Boolean(flight.aircraft?.reg || flight.aircraft?.modeS)
+  if (status === 'unknown' || !traceable) {
+    return { key: 'unassigned', x: { ...base, ...trackRecord(flight.history) } }
   }
 
   if (isParked(flight)) {
@@ -171,6 +201,7 @@ const PANEL_REQUIERE = {
   canceledUncertain: (fl) => fl.lastCheckedMin != null,
   canceled: () => true,
   gone: (fl) => Boolean(fl.estimate),
+  boarding: (fl) => Boolean(fl.arrival?.predicted),
 }
 
 /**
@@ -180,7 +211,9 @@ const PANEL_REQUIERE = {
 export function deriveVerdict(flight, copy) {
   const { key, x } = analyse(flight)
   const words = copy.verdict[key](flight, x)
-  return { key, tone: TONE_BY_KEY[key], ...words, panel: buildPanelSafely(flight, x, key, copy) }
+  // Algunos estados eligen su tono según los datos, no solo según el estado.
+  const tone = x.tone ?? TONE_BY_KEY[key]
+  return { key, tone, ...words, panel: buildPanelSafely(flight, x, key, copy) }
 }
 
 /**

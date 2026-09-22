@@ -12,6 +12,15 @@ const leg = (airport, iata, state, tag) => ({ airport, iata, state, tag })
 export const DEMO_CODE = 'FR1234'
 
 export const FIXTURES = {
+  boarding: {
+    code: 'IB 1082', status: 'gateClosed', airline: 'Iberia',
+    route: { from: { city: 'Valencia', iata: 'VLC' }, to: { city: 'Madrid', iata: 'MAD' } },
+    departure: { scheduled: '17:40', revised: '17:40', terminal: '1', gate: '14,13' },
+    arrival: { scheduled: '18:50', revised: '18:35', predicted: '18:59', terminal: '4' },
+    aircraft: { reg: null, modeS: null, model: 'Bombardier CRJ1000', ageYears: null },
+    delayMin: 0, turnaroundMin: null, estimate: null, rotation: [],
+  },
+
   late: {
     code: 'FR1234', status: 'delayed', airline: 'Ryanair',
     route: { from: { city: 'Valencia', iata: 'VLC' }, to: { city: 'Londres', iata: 'LON' } },

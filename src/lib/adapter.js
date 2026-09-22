@@ -161,6 +161,15 @@ export function toInternal(flight, aircraftFlights = [], aircraftInfo = null) {
       terminal: flight.departure?.terminal ?? null,
       gate: flight.departure?.gate ?? null,
     },
+    // La llegada es donde vive el valor del producto: la aerolínea publica su
+    // hora revisada y el proveedor su propia predicción, y no coinciden.
+    // Medido en un vuelo real: aerolínea 18:35, predicción 18:59.
+    arrival: {
+      scheduled: hhmm(flight.arrival?.scheduledTime),
+      revised: hhmm(flight.arrival?.revisedTime),
+      predicted: hhmm(flight.arrival?.predictedTime),
+      terminal: flight.arrival?.terminal ?? null,
+    },
     aircraft: reg || modeS || model
       ? { reg, modeS, model: model ?? 'Avión sin identificar', ageYears: aircraftInfo?.ageYears ?? null }
       : null,

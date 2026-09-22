@@ -1,7 +1,7 @@
 import { useI18n } from '../i18n/index.jsx'
 
 /** Orden en que tiene sentido enseñar los escenarios. */
-const ORDER = ['late', 'risk', 'onTime', 'parked', 'overnight', 'gone',
+const ORDER = ['late', 'risk', 'onTime', 'parked', 'overnight', 'boarding', 'gone',
                'unassigned', 'diverted', 'canceledUncertain', 'canceled']
 
 /**
