@@ -13,7 +13,19 @@ import { toInternal } from './adapter.js'
 /** Formato de número de vuelo: 2-3 caracteres de aerolínea + 1-4 dígitos. */
 const FLIGHT_CODE = /^[A-Z0-9]{2,3}\d{1,4}$/
 
-const CACHE_TTL_MS = 90_000 // vuelos en vivo: 90 s
+/**
+ * Caché adaptativa.
+ *
+ * Medido con un vuelo real: su ficha no se tocó en 5,3 horas (mismo
+ * `lastUpdatedUtc` en dos consultas separadas por toda la tarde). El proveedor
+ * solo actualiza cuando algo cambia, así que cachear 90 s un vuelo que sale
+ * mañana es tirar unidades del plan gratuito a la basura.
+ *
+ * Cerca de la salida sí conviene refrescar: es cuando aparecen avión, puerta y
+ * retrasos.
+ */
+const CACHE_TTL_LEJOS_MS = 15 * 60_000 // a más de 3 h de la salida
+const CACHE_TTL_CERCA_MS = 90_000 // en la recta final
 const RATE_LIMIT = { max: 20, windowMs: 60_000 } // 20 búsquedas por IP y minuto
 
 /**
@@ -38,9 +50,17 @@ function cacheGet(key) {
   return entry.value
 }
 
-function cacheSet(key, value) {
-  cache.set(key, { value, expires: Date.now() + CACHE_TTL_MS })
+function cacheSet(key, value, ttl) {
+  cache.set(key, { value, expires: Date.now() + ttl })
   if (cache.size > 500) cache.delete(cache.keys().next().value)
+}
+
+/** Cuánto cachear según lo lejos que esté la salida. */
+function ttlFor(flight) {
+  const salida = flight.departure?.scheduledTime?.utc
+  if (!salida) return CACHE_TTL_CERCA_MS
+  const faltan = new Date(salida.replace(' ', 'T')) - Date.now()
+  return faltan > 3 * 3600_000 ? CACHE_TTL_LEJOS_MS : CACHE_TTL_CERCA_MS
 }
 
 function rateLimited(ip) {
@@ -155,7 +175,7 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
       : []
 
     const result = toInternal(flight, aircraftFlights)
-    cacheSet(cacheKey, result)
+    cacheSet(cacheKey, result, ttlFor(flight))
     return json(result, 200, { 'x-isitlate-cache': 'miss' })
   } catch (err) {
     console.error('[isitlate] fallo consultando el proveedor:', err)
