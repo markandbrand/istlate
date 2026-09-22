@@ -124,10 +124,10 @@ export const FIXTURES = {
     // podemos contar cuando todavía no hay avión asignado, y sirve igual el
     // día antes que tres meses antes, al reservar.
     history: [
-      { label: 'lun', delayMin: 0 }, { label: 'mar', delayMin: 8 },
-      { label: 'mié', delayMin: 52 }, { label: 'jue', delayMin: 0 },
-      { label: 'vie', delayMin: 21 }, { label: 'sáb', delayMin: 0 },
-      { label: 'dom', delayMin: 5 },
+      { date: '2026-09-15', delayMin: 0 }, { date: '2026-09-16', delayMin: 0 },
+      { date: '2026-09-17', delayMin: 9 }, { date: '2026-09-18', delayMin: 8 },
+      { date: '2026-09-19', delayMin: 17 }, { date: '2026-09-20', delayMin: 10 },
+      { date: '2026-09-21', delayMin: 28 },
     ],
   },
 

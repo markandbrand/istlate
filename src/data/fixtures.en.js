@@ -123,10 +123,10 @@ export const FIXTURES = {
     // can tell you while there is no aircraft assigned yet, and it works just
     // as well the day before as three months out, at booking time.
     history: [
-      { label: 'Mon', delayMin: 0 }, { label: 'Tue', delayMin: 8 },
-      { label: 'Wed', delayMin: 52 }, { label: 'Thu', delayMin: 0 },
-      { label: 'Fri', delayMin: 21 }, { label: 'Sat', delayMin: 0 },
-      { label: 'Sun', delayMin: 5 },
+      { date: '2026-09-15', delayMin: 0 }, { date: '2026-09-16', delayMin: 0 },
+      { date: '2026-09-17', delayMin: 9 }, { date: '2026-09-18', delayMin: 8 },
+      { date: '2026-09-19', delayMin: 17 }, { date: '2026-09-20', delayMin: 10 },
+      { date: '2026-09-21', delayMin: 28 },
     ],
   },
 

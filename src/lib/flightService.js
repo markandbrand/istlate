@@ -26,6 +26,10 @@ const FLIGHT_CODE = /^[A-Z0-9]{2,3}\d{1,4}$/
  */
 const CACHE_TTL_LEJOS_MS = 15 * 60_000 // a más de 3 h de la salida
 const CACHE_TTL_CERCA_MS = 90_000 // en la recta final
+/** El historial del número de vuelo cambia una vez al día: cachearlo 12 h. */
+const CACHE_TTL_HISTORIAL_MS = 12 * 3600_000
+/** Días de histórico que alimentan la tira de puntualidad. */
+const DIAS_HISTORIAL = 7
 const RATE_LIMIT = { max: 20, windowMs: 60_000 } // 20 búsquedas por IP y minuto
 
 /**
@@ -80,6 +84,9 @@ const json = (body, status = 200, headers = {}) =>
 
 /** Fecha de hoy en formato YYYY-MM-DD, que es lo que espera AeroDataBox. */
 const today = () => new Date().toISOString().slice(0, 10)
+
+/** Fecha de hace n días, en el mismo formato. */
+const daysAgo = (n) => new Date(Date.now() - n * 86400_000).toISOString().slice(0, 10)
 
 /**
  * Parámetros opcionales, copiados de la consola de RapidAPI.
@@ -174,7 +181,27 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
       ? await callProvider(`/flights/${buscarPor}/${today()}?${OPCIONES}`, env)
       : []
 
-    const result = toInternal(flight, aircraftFlights)
+    // 3) El historial del número de vuelo: cómo se porta habitualmente.
+    //
+    // Es lo único que podemos contar cuando no hay avión identificado, que
+    // según las mediciones es casi siempre antes de despegar. Se cachea 12 h
+    // porque solo cambia al cerrarse el día, y va aparte del vuelo del día
+    // para no repetir una consulta de rango, que es de las caras en unidades.
+    const historyKey = `hist:${code}`
+    let rangeFlights = cacheGet(historyKey)
+    if (!rangeFlights) {
+      rangeFlights = await callProvider(
+        `/flights/number/${code}/${daysAgo(DIAS_HISTORIAL)}/${daysAgo(1)}?${OPCIONES}`,
+        env,
+      ).catch((err) => {
+        // Un fallo aquí no debe tumbar la búsqueda: el historial es apoyo.
+        console.warn('[isitlate] historial no disponible:', err.message)
+        return []
+      })
+      cacheSet(historyKey, rangeFlights, CACHE_TTL_HISTORIAL_MS)
+    }
+
+    const result = toInternal(flight, aircraftFlights, null, rangeFlights)
     cacheSet(cacheKey, result, ttlFor(flight))
     return json(result, 200, { 'x-isitlate-cache': 'miss' })
   } catch (err) {

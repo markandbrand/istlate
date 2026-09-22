@@ -4,10 +4,14 @@
  * Aquí es donde se nota la diferencia entre traducir y adaptar: un vuelo de
  * las 20:30 en España sale at 8:30 PM en Estados Unidos, y 830 km son
  * 516 millas. Los datos se guardan siempre en formato canónico (hora "HH:MM"
- * de 24 h y kilómetros) y se convierten solo al pintarlos.
+ * de 24 h, fecha "AAAA-MM-DD" y kilómetros) y se convierten solo al pintarlos.
  */
 
 const pad = (n) => String(n).padStart(2, '0')
+
+/** "2026-09-15" → el día de la semana abreviado en ese idioma. */
+const weekdayIn = (tag) => (date) =>
+  new Intl.DateTimeFormat(tag, { weekday: 'short' }).format(new Date(`${date}T12:00:00`))
 
 export const FORMATTERS = {
   es: {
@@ -27,6 +31,8 @@ export const FORMATTERS = {
     minutes: (n) => `${n} min`,
 
     plural: (n, one, many) => `${n} ${n === 1 ? one : many}`,
+
+    weekday: weekdayIn('es-ES'),
   },
 
   en: {
@@ -53,5 +59,7 @@ export const FORMATTERS = {
     minutes: (n) => `${n} min`,
 
     plural: (n, one, many) => `${n} ${n === 1 ? one : many}`,
+
+    weekday: weekdayIn('en-US'),
   },
 }

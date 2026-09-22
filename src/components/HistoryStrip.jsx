@@ -9,7 +9,10 @@
  * Cada día lleva su cifra impresa, de modo que el color solo refuerza: quien
  * no distinga los tonos lee igual el dato.
  */
+import { useI18n } from '../i18n/index.jsx'
+
 export default function HistoryStrip({ caption, days, legend }) {
+  const { fmt } = useI18n()
   return (
     <div className="mb-2">
       <div className="mb-2 text-[11px] tracking-[0.06em] text-ink-dim uppercase">{caption}</div>
@@ -17,12 +20,14 @@ export default function HistoryStrip({ caption, days, legend }) {
       <div className="flex gap-0.5">
         {days.map((day, i) => (
           <div
-            key={`${day.label}-${i}`}
+            key={day.date ?? i}
             className={`flex-1 rounded-[10px] px-1 py-2.5 text-center ${
               day.onTime ? 'bg-green-dim' : 'bg-coral-dim'
             }`}
           >
-            <div className="text-[10.5px] font-semibold text-ink-dim">{day.label}</div>
+            <div className="text-[10.5px] font-semibold text-ink-dim">
+              {day.date ? fmt.weekday(day.date) : day.label}
+            </div>
             <div
               className={`mt-1 font-mono text-[13px] font-bold tabular-nums ${
                 day.onTime ? 'text-green-ink' : 'text-coral-ink'

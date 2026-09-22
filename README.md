@@ -310,6 +310,31 @@ Eso es exactamente la tarjeta "Dice la aerolínea / Nuestra estimación", funcio
 reales, **sin necesitar la matrícula**. La rotación pasa de motor del producto a función
 aplazada hasta que haya presupuesto para otro proveedor.
 
+### El historial funciona, y remata la cuestión de la rotación
+
+Siete días reales de IB 1082 (VLC→MAD, 15–21/09/2026) por el endpoint de rango:
+
+| Fecha | Salida prog. → real | Retraso | Matrícula |
+|---|---|---|---|
+| 15/09 | 17:40 → 17:40 | — | EC-MLO |
+| 16/09 | 17:40 → 17:38 | — | EC-MSB |
+| 17/09 | 17:40 → 17:49 | +9 | EC-MTZ |
+| 18/09 | 17:40 → 17:48 | +8 | EC-MLN |
+| 19/09 | 17:40 → 17:57 | +17 | EC-LOJ |
+| 20/09 | 17:40 → 17:50 | +10 | EC-OOQ |
+| 21/09 | 17:40 → 18:08 | +28 | — |
+
+**71 % de salidas puntuales, +10 min de media.** El panel de puntualidad funciona con datos
+reales, y el histórico llega hasta **365 días atrás** en el plan gratuito.
+
+Dos hallazgos más en esa misma respuesta:
+
+- **Los vuelos ya completados sí traen matrícula y Mode-S**, salvo el del día anterior, que
+  aún no estaba enriquecido. Confirma que el identificador se añade al cerrar el vuelo.
+- **Seis aviones distintos en siete días.** No hay patrón que aprender: aunque quisiéramos
+  adivinar qué avión va a tocar mirando el histórico, no se puede. Eso cierra la rotación
+  previa de forma definitiva, no por límite del proveedor sino por cómo opera la aerolínea.
+
 ### Lo que enseñó la primera consulta a un vuelo sin salir
 
 - **A 2,5 horas de la salida todavía no se sabe qué avión concreto vuela.** Llega el modelo,
