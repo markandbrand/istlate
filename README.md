@@ -268,17 +268,22 @@ vuelve a desplegar. La función deja de devolver datos de ejemplo sola.
 
 Tres mediciones sobre vuelos reales el 22/09/2026:
 
-| Momento | Estado | ¿Matrícula o Mode-S? |
-|---|---|---|
-| A 2,5 h de la salida | `Expected` | ❌ solo el modelo |
-| Con la puerta ya cerrada | `GateClosed` | ❌ solo el modelo |
-| Vuelo ya aterrizado | `Arrived` | ✅ `modeS` |
+| Vuelo | Momento | Estado | ¿Matrícula o Mode-S? |
+|---|---|---|---|
+| IB 2401 VLC→PMI | 2,5 h antes de salir | `Expected` | ❌ solo el modelo |
+| IB 1082 VLC→MAD | puerta cerrada | `GateClosed` | ❌ solo el modelo |
+| VY 3965 VLC→SVQ | **en el aire** | `EnRoute` | ❌ solo el modelo |
+| IB 325 MAD→JFK | ya aterrizado | `Arrived` | ✅ `modeS` |
 
-El `modeS` es la dirección del transpondedor: el proveedor lo saca de **escuchar al avión en
-el aire**, no de la programación de la aerolínea. Conclusión: **con este API no se puede
-saber qué avión concreto operará tu vuelo antes de que despegue.**
+Ni siquiera con el avión volando aparece el identificador. El único vuelo que lo trajo era
+un largo radio ya completado, consultado como histórico.
 
-Eso tumba la rotación previa tal y como se había imaginado… y a la vez aparece algo mejor.
+**Conclusión: con AeroDataBox en el plan Basic no se puede saber qué avión operará un vuelo,
+ni antes de salir ni con el avión en el aire.** La rotación previa —seguirle la pista al
+avión que viene a por ti— **no es alcanzable con este proveedor**. Haría falta uno con datos
+de asignación de la aerolínea (Cirium y similares), que es precio de empresa.
+
+Eso tumba el mecanismo que habíamos imaginado… y a la vez destapa algo mejor.
 
 ### El producto no necesitaba la rotación
 
@@ -286,12 +291,24 @@ La promesa era "no te fíes de lo que dice la aerolínea, te contamos lo que va 
 verdad". La rotación era el *mecanismo* para calcularlo. Pero el proveedor **ya publica su
 propia predicción** (`arrival.predictedTime`), y no coincide con la aerolínea:
 
-> Vuelo IB 1082, puerta cerrada. La aerolínea decía llegada a las **18:35**. La predicción
-> decía **18:59**. Veinticuatro minutos de diferencia, en datos de hace trece minutos.
+Y el patrón se repite en los dos vuelos medidos:
+
+| Vuelo | Programada | Dice la aerolínea | Predice el proveedor | Discrepancia |
+|---|---|---|---|---|
+| IB 1082 | 18:50 | 18:35 (−15 min) | 18:59 (+9 sobre la programada) | **24 min** |
+| VY 3965 | 18:40 | 18:24 (−16 min) | 18:47 (+7 sobre la programada) | **23 min** |
+
+Las dos aerolíneas prometen llegar **quince minutos antes** de lo programado; el proveedor
+dice que aterrizarás **más o menos a tu hora, con unos minutos de más**. Esa diferencia
+constante de 23-24 minutos es, literalmente, la tesis del producto en números.
+
+Con dos muestras no se puede afirmar que la predicción sea un modelo sofisticado —podría ser
+la hora programada más un margen típico de la ruta—, pero para el usuario da igual: es más
+honesta que la de la aerolínea, y es un dato que nadie le está dando.
 
 Eso es exactamente la tarjeta "Dice la aerolínea / Nuestra estimación", funcionando con datos
-reales, **sin necesitar la matrícula**. La rotación pasa de ser el motor del producto a ser
-un extra para quien consulta a última hora o viene a recoger a alguien.
+reales, **sin necesitar la matrícula**. La rotación pasa de motor del producto a función
+aplazada hasta que haya presupuesto para otro proveedor.
 
 ### Lo que enseñó la primera consulta a un vuelo sin salir
 
