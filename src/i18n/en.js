@@ -9,6 +9,7 @@ export default {
   label: 'English',
 
   ui: {
+    realData: (when) => `Real data for this flight, pulled on ${when}`,
     eyebrow: '● demo mode · sample data',
     h1: [
       { text: 'Is your plane' },

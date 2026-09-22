@@ -23,6 +23,12 @@ export default function FlightResult({ flight }) {
 
   return (
     <div className="rounded-card bg-card p-7 shadow-soft">
+      {flight.measuredAt && (
+        <p className="mt-0 mb-5 inline-flex items-center gap-2 rounded-full bg-green-dim px-3 py-1.5 text-[12px] font-semibold text-green-ink">
+          ✓ {t.realData(flight.measuredAt)}
+        </p>
+      )}
+
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="mb-1.5 font-mono text-[13px] tracking-[0.06em] text-ink-dim">

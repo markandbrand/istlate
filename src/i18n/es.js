@@ -9,6 +9,7 @@ export default {
   label: 'Español',
 
   ui: {
+    realData: (when) => `Datos reales de este vuelo, consultados el ${when}`,
     eyebrow: '● modo demo · datos de ejemplo',
     h1: [
       { text: '¿Va a llegar' },
@@ -64,7 +65,7 @@ export default {
   },
 
   scenarios: {
-    boarding: 'Embarcando',
+    boarding: 'Embarcando · real',
     late: 'Va tarde',
     risk: 'Riesgo',
     onTime: 'En hora',

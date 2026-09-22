@@ -19,6 +19,8 @@ export const FIXTURES = {
     arrival: { scheduled: '18:50', revised: '18:35', predicted: '18:59', terminal: '4' },
     aircraft: { reg: null, modeS: null, model: 'Bombardier CRJ1000', ageYears: null },
     delayMin: 0, turnaroundMin: null, estimate: null, rotation: [],
+    // Datos reales, no inventados: consulta a AeroDataBox del 22/09/2026.
+    measuredAt: '22/09/2026 a las 17:50',
   },
 
   late: {
