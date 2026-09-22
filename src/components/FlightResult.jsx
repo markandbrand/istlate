@@ -1,5 +1,6 @@
 import PlaneIcon from './PlaneIcon.jsx'
 import Rotation from './Rotation.jsx'
+import HistoryStrip from './HistoryStrip.jsx'
 import { TONES } from '../lib/tones.js'
 import { deriveVerdict } from '../lib/verdict.js'
 import { useI18n } from '../i18n/index.jsx'
@@ -125,6 +126,11 @@ export default function FlightResult({ flight }) {
               </div>
             ))}
           </div>
+          {verdict.panel.strip && (
+            <div className="mt-4">
+              <HistoryStrip {...verdict.panel.strip} />
+            </div>
+          )}
           {verdict.panel.note && (
             <p className="mt-[14px] mb-[1em] text-[13.5px] leading-[1.6] text-ink-dim">
               {verdict.panel.note}

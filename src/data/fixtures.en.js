@@ -110,6 +110,15 @@ export const FIXTURES = {
     route: { from: { city: 'Newark', iata: 'EWR' }, to: { city: 'San Francisco', iata: 'SFO' } },
     departure: { scheduled: '11:25', revised: null, terminal: 'C', gate: null },
     aircraft: null, delayMin: 0, turnaroundMin: null, knownBy: '08:30', estimate: null, rotation: [],
+    // How this flight number has behaved over the last 7 days. It is what we
+    // can tell you while there is no aircraft assigned yet, and it works just
+    // as well the day before as three months out, at booking time.
+    history: [
+      { label: 'Mon', delayMin: 0 }, { label: 'Tue', delayMin: 8 },
+      { label: 'Wed', delayMin: 52 }, { label: 'Thu', delayMin: 0 },
+      { label: 'Fri', delayMin: 21 }, { label: 'Sat', delayMin: 0 },
+      { label: 'Sun', delayMin: 5 },
+    ],
   },
 
   gone: {

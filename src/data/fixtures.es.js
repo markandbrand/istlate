@@ -111,6 +111,15 @@ export const FIXTURES = {
     route: { from: { city: 'Alicante', iata: 'ALC' }, to: { city: 'Dublín', iata: 'DUB' } },
     departure: { scheduled: '11:25', revised: null, terminal: null, gate: null },
     aircraft: null, delayMin: 0, turnaroundMin: null, knownBy: '08:30', estimate: null, rotation: [],
+    // Cómo se ha portado este número de vuelo los últimos 7 días. Es lo que
+    // podemos contar cuando todavía no hay avión asignado, y sirve igual el
+    // día antes que tres meses antes, al reservar.
+    history: [
+      { label: 'lun', delayMin: 0 }, { label: 'mar', delayMin: 8 },
+      { label: 'mié', delayMin: 52 }, { label: 'jue', delayMin: 0 },
+      { label: 'vie', delayMin: 21 }, { label: 'sáb', delayMin: 0 },
+      { label: 'dom', delayMin: 5 },
+    ],
   },
 
   gone: {

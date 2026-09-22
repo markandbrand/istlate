@@ -76,8 +76,8 @@ export default {
       badge: 'Todavía no se sabe',
       emoji: '🕐',
       title: 'Aún no sabemos qué avión te toca',
-      text: 'La aerolínea todavía no ha asignado avión a este vuelo. Suele saberse unas horas antes de la salida, así que vuelve más tarde y te contamos por dónde anda.',
-      advice: 'Te avisamos en cuanto se sepa, si nos dejas tu email.',
+      text: 'La aerolínea todavía no ha asignado avión a este vuelo, así que aún no podemos seguirle la pista a la rotación. Pero no te vas de vacío: abajo te contamos cómo se porta este vuelo habitualmente.',
+      advice: 'Te avisamos en cuanto se sepa qué avión te toca, si nos dejas tu email.',
     }),
 
     canceled: (fl) => ({
@@ -221,12 +221,17 @@ export default {
     }),
 
     unassigned: (fl, x) => ({
-      label: '🕐 Cuándo volver a mirar',
+      label: '📊 Cómo se porta este vuelo',
       cards: [
-        { k: 'Se suele saber sobre las', v: f.time(fl.knownBy) },
-        { k: 'Salida prevista', v: f.time(x.departure), accent: true },
+        { k: 'Sale puntual', v: `${x.punctuality}% de los días`, accent: true },
+        { k: 'Retraso medio', v: x.avgDelay > 0 ? `+${x.avgDelay} min` : 'Ninguno' },
       ],
-      note: 'No te hacemos perder el tiempo recargando: déjanos el email y te escribimos en cuanto haya avión.',
+      strip: {
+        caption: 'Últimos 7 días',
+        days: x.days,
+        legend: { onTime: 'Puntual (menos de 15 min)', late: 'Con retraso' },
+      },
+      note: 'Todavía no sabemos qué avión te tocará, pero sí sabemos cómo se comporta este vuelo normalmente. Cuando la aerolínea asigne avión, te contamos su rotación al detalle.',
     }),
 
     canceledUncertain: (fl) => ({

@@ -82,6 +82,26 @@ function isParked(flight) {
   return Boolean(last && last.state === 'done' && last.iata === flight.route.from.iata)
 }
 
+/**
+ * Resumen del historial del número de vuelo.
+ *
+ * Dos niveles y no tres a propósito: el validador de paletas demuestra que
+ * ámbar y coral son indistinguibles para un daltónico (ΔE 2,4), y además
+ * coincide con la regla del producto: por debajo de RUIDO_MIN el retraso no
+ * merece alarmar. Cada día lleva además su cifra, así que el color nunca es
+ * la única señal.
+ */
+function trackRecord(history) {
+  if (!history?.length) return {}
+  const enHora = history.filter((d) => d.delayMin < RUIDO_MIN).length
+  const total = history.reduce((sum, d) => sum + d.delayMin, 0)
+  return {
+    punctuality: Math.round((enHora / history.length) * 100),
+    avgDelay: Math.round(total / history.length),
+    days: history.map((d) => ({ ...d, onTime: d.delayMin < RUIDO_MIN })),
+  }
+}
+
 /** Decide el estado y calcula los números que el texto necesita. */
 function analyse(flight) {
   const departure = effectiveDeparture(flight)
@@ -95,7 +115,9 @@ function analyse(flight) {
   if (status === 'canceledUncertain') return { key: 'canceledUncertain', x: base }
   if (status === 'diverted') return { key: 'diverted', x: base }
 
-  if (status === 'unknown' || !flight.aircraft) return { key: 'unassigned', x: base }
+  if (status === 'unknown' || !flight.aircraft) {
+    return { key: 'unassigned', x: { ...base, ...trackRecord(flight.history) } }
+  }
 
   if (['departed', 'enRoute', 'approaching', 'arrived'].includes(status)) {
     const espera = flight.hasCheckedBags ? PUERTA_MIN.conMaleta : PUERTA_MIN.sinMaleta
@@ -141,7 +163,7 @@ const PANEL_REQUIERE = {
   risk: (fl) => Boolean(fl.tippingPoint),
   late: (fl) => Boolean(fl.estimate),
   diverted: (fl) => fl.extraKm != null,
-  unassigned: (fl) => Boolean(fl.knownBy),
+  unassigned: (fl, x) => Boolean(x.days?.length),
   canceledUncertain: (fl) => fl.lastCheckedMin != null,
   canceled: () => true,
   gone: (fl) => Boolean(fl.estimate),

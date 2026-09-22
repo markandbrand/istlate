@@ -75,8 +75,8 @@ export default {
       badge: 'Not known yet',
       emoji: '🕐',
       title: "Nobody knows which plane you're getting yet",
-      text: "The airline hasn't assigned an aircraft to this flight yet. That usually locks in a few hours before departure, so check back later and we'll show you where it's been.",
-      advice: "Leave your email and we'll ping you the second there's a tail number.",
+      text: "The airline hasn't assigned an aircraft to this flight yet, so we can't trace its day. You're not leaving empty-handed though: below is how this flight normally behaves.",
+      advice: "Leave your email and we'll ping you the second there's a plane on it.",
     }),
 
     canceled: (fl) => ({
@@ -220,12 +220,17 @@ export default {
     }),
 
     unassigned: (fl, x) => ({
-      label: '🕐 When to check back',
+      label: '📊 How this flight usually behaves',
       cards: [
-        { k: 'Usually known by', v: f.time(fl.knownBy) },
-        { k: 'Scheduled departure', v: f.time(x.departure), accent: true },
+        { k: 'Leaves on time', v: `${x.punctuality}% of days`, accent: true },
+        { k: 'Average delay', v: x.avgDelay > 0 ? `+${x.avgDelay} min` : 'None' },
       ],
-      note: "Don't sit here hitting refresh. Leave your email and we'll write the moment there's a plane.",
+      strip: {
+        caption: 'Last 7 days',
+        days: x.days,
+        legend: { onTime: 'On time (under 15 min)', late: 'Delayed' },
+      },
+      note: "We don't know which plane you're getting yet, but we do know how this flight normally behaves. Once the airline assigns an aircraft, we'll walk you through its whole day.",
     }),
 
     canceledUncertain: (fl) => ({

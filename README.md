@@ -141,10 +141,21 @@ dato que hace que la app se sienta la más fácil del mundo para enterarte de lo
 | `risk` | 👀 El número a vigilar | La hora exacta que decide si sales puntual |
 | `late` | 🔮 Nuestra previsión | Lo que dice la aerolínea vs. lo que decimos nosotros |
 | `diverted` | 🗺️ La vuelta que ha dado | Kilómetros de más y nueva salida |
-| `unassigned` | 🕐 Cuándo volver a mirar | A qué hora se sabrá el avión |
+| `unassigned` | 📊 Cómo se porta este vuelo | Puntualidad de los últimos 7 días |
 | `canceledUncertain` | 📡 Cómo de fresco es esto | Hace cuánto lo comprobamos |
 | `canceled` | ⚖️ Lo que te pueden deber | Compensación orientativa según distancia |
 | `gone` | 🚪 Si vienes a recoger a alguien | A qué hora sale de verdad por la puerta |
+
+El panel de `unassigned` es el que resuelve el hueco más incómodo del producto: cuando la
+aerolínea aún no ha asignado avión, no hay rotación que contar. En vez de dejar la tarjeta
+vacía, enseña **el historial del número de vuelo** — puntualidad y retraso medio de los
+últimos días. Funciona igual el día antes que tres meses antes, al reservar.
+
+La tira de días (`HistoryStrip.jsx`) usa **dos niveles y no tres a propósito**: el validador
+de paletas demuestra que ámbar y coral son indistinguibles para un daltónico (ΔE 2,4 en
+protanopia). Dos niveles pasan todas las comprobaciones, y además coinciden con la regla del
+producto: por debajo de 15 minutos el retraso no merece alarmar. Cada día lleva su cifra
+impresa, así que el color solo refuerza.
 
 El importe de `canceled` sale de los tramos por distancia del reglamento (CE) 261/2004
 (250 € / 400 € / 600 €) y se etiqueta siempre como orientativo: no se cobra en circunstancias
