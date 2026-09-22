@@ -295,11 +295,31 @@ La caché de 90 segundos hace que varias personas preguntando por el mismo vuelo
 sola consulta, así que el número real será mayor. Confirma tiers y precios en su página, que
 cambian.
 
+## La lista de correo
+
+El formulario pide **dos consentimientos separados**, y no es burocracia:
+
+- **Enviar el formulario** consiente que le avisemos del lanzamiento, que es lo que la
+  persona ha venido a pedir.
+- **La casilla, opcional y desmarcada**, consiente lo demás: consejos, recomendaciones y
+  futuras ofertas.
+
+El RGPD exige consentimiento específico por finalidad. Si se mezclan, la lista queda
+**inservible para cualquier uso comercial posterior** (tienda, afiliación, newsletter
+patrocinada): habría que volver a pedir permiso uno por uno, y la mayoría no contesta.
+Separarlo cuesta diez líneas hoy.
+
+Cuando se conecte el proveedor de email, hay que guardar además de la dirección:
+`acceptsMarketing`, `consentedAt`, el idioma y el origen del alta. Es lo que se necesita
+para demostrar el consentimiento si alguien lo reclama.
+
 ## Pendientes conocidos
 
-- El formulario de lista de espera no envía el email a ningún sitio (`TODO` en
-  `src/components/Waitlist.jsx`). AeroDataBox tiene un *Flight Alert API* con webhooks que
-  encajaría aquí para avisar de verdad cuando se asigne avión.
+- **El formulario todavía no guarda nada** (`TODO` en `src/components/Waitlist.jsx`): hace
+  falta conectar un proveedor de email. Hasta entonces, cada alta se pierde.
+- Falta la página de política de privacidad a la que enlaza el formulario (`/privacidad`).
+- AeroDataBox tiene un *Flight Alert API* con webhooks que encajaría para avisar de verdad
+  cuando se asigne avión al vuelo.
 - `estimate` (nuestra previsión de salida) viene de los fixtures; falta calcularlo en el
   backend a partir de la rotación real.
 - La caché y el rate limit viven en memoria por instancia. Cuando el tráfico lo justifique,
