@@ -138,7 +138,8 @@ export const FIXTURES = {
     route: { from: { city: 'Barcelona', iata: 'BCN' }, to: { city: 'Madrid', iata: 'MAD' } },
     departure: { scheduled: '21:00', revised: '21:12', terminal: 'T1', gate: 'A08' },
     aircraft: { reg: 'EC-JFH', model: 'Airbus A321', ageYears: 18.3 },
-    delayMin: 12, turnaroundMin: null, hasCheckedBags: false,
+    delayMin: 12, turnaroundMin: null, hasCheckedBags: false, progressPct: 62,
+    arrival: { scheduled: '22:30', revised: null, predicted: '22:35', terminal: null },
     estimate: { from: '22:35', to: '22:45' },
     rotation: [
       leg('Madrid', 'MAD', 'done', { kind: 'tookOff', time: '19:20' }),

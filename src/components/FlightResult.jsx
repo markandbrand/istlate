@@ -1,6 +1,7 @@
 import PlaneIcon from './PlaneIcon.jsx'
 import Rotation from './Rotation.jsx'
 import HistoryStrip from './HistoryStrip.jsx'
+import FlightProgress from './FlightProgress.jsx'
 import { TONES } from '../lib/tones.js'
 import { deriveVerdict } from '../lib/verdict.js'
 import { useI18n } from '../i18n/index.jsx'
@@ -67,6 +68,19 @@ export default function FlightResult({ flight }) {
           </p>
         )}
       </div>
+
+      {verdict.progress != null && (
+        <FlightProgress
+          from={flight.route.from.iata}
+          to={flight.route.to.iata}
+          pct={verdict.progress}
+          label={
+            verdict.progress >= 100
+              ? t.progressLanded
+              : t.progressLabel(verdict.progress, fmt.time(flight.arrival?.predicted ?? flight.estimate?.from))
+          }
+        />
+      )}
 
       <div className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(110px,1fr))] gap-4 border-t border-b border-line py-4">
         {metaItems(flight, t, fmt).map((item) => (

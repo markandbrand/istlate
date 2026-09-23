@@ -135,7 +135,8 @@ export const FIXTURES = {
     route: { from: { city: 'New York', iata: 'LGA' }, to: { city: 'Atlanta', iata: 'ATL' } },
     departure: { scheduled: '21:00', revised: '21:12', terminal: 'C', gate: 'C28' },
     aircraft: { reg: 'N195DN', model: 'Boeing 757-200', ageYears: 18.3 },
-    delayMin: 12, turnaroundMin: null, hasCheckedBags: false,
+    delayMin: 12, turnaroundMin: null, hasCheckedBags: false, progressPct: 62,
+    arrival: { scheduled: '22:30', revised: null, predicted: '22:35', terminal: null },
     estimate: { from: '22:35', to: '22:45' },
     rotation: [
       leg('Atlanta', 'ATL', 'done', { kind: 'tookOff', time: '19:20' }),

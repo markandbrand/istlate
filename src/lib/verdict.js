@@ -72,6 +72,25 @@ export function compensation(km) {
 export const effectiveDeparture = (flight) =>
   flight.departure.revised ?? flight.departure.scheduled
 
+/**
+ * Porcentaje del vuelo recorrido, medido en tiempo.
+ *
+ * Se apoya en dos datos que ya teníamos: la hora real de despegue y la
+ * predicción de llegada. Los fixtures pueden fijarlo a mano porque sus horas
+ * no llevan fecha y compararlas con el reloj real daría cualquier cosa.
+ */
+function flightProgress(flight, now = new Date()) {
+  if (flight.progressPct != null) return flight.progressPct
+  const salida = flight.departure?.revised ?? flight.departure?.scheduled
+  const llegada = flight.arrival?.predicted ?? flight.arrival?.revised ?? flight.arrival?.scheduled
+  const total = minutesBetween(salida, llegada)
+  if (!total) return null
+  const ahora = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  const transcurrido = minutesBetween(salida, ahora)
+  if (transcurrido == null) return null
+  return Math.min(100, Math.max(0, Math.round((transcurrido / total) * 100)))
+}
+
 /** Cuánto se desvía la predicción de llegada respecto a lo que dice la aerolínea. */
 function predictedDelay(flight) {
   const { revised, scheduled, predicted } = flight.arrival ?? {}
@@ -146,7 +165,12 @@ function analyse(flight) {
     const espera = flight.hasCheckedBags ? PUERTA_MIN.conMaleta : PUERTA_MIN.sinMaleta
     return {
       key: 'gone',
-      x: { ...base, landed: status === 'arrived', gateOutAt: plusMinutes(flight.estimate?.from, espera) },
+      x: {
+        ...base,
+        landed: status === 'arrived',
+        gateOutAt: plusMinutes(flight.estimate?.from, espera),
+        progressPct: status === 'arrived' ? 100 : flightProgress(flight),
+      },
     }
   }
 
@@ -213,7 +237,7 @@ export function deriveVerdict(flight, copy) {
   const words = copy.verdict[key](flight, x)
   // Algunos estados eligen su tono según los datos, no solo según el estado.
   const tone = x.tone ?? TONE_BY_KEY[key]
-  return { key, tone, ...words, panel: buildPanelSafely(flight, x, key, copy) }
+  return { key, tone, ...words, progress: x.progressPct ?? null, panel: buildPanelSafely(flight, x, key, copy) }
 }
 
 /**

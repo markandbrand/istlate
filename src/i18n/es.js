@@ -9,6 +9,8 @@ export default {
   label: 'Español',
 
   ui: {
+    progressLabel: (pct, llegada) => `${pct}% del tiempo de vuelo · aterriza sobre las ${llegada}`,
+    progressLanded: 'Ya en tierra',
     realData: (when) => `Datos reales de este vuelo, consultados el ${when}`,
     eyebrow: '● modo demo · datos de ejemplo',
     h1: [
