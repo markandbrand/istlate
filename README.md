@@ -1,8 +1,17 @@
-# IsItLate? — ¿Va a llegar tarde tu avión?
+# IsItLate? — ¿Cómo va tu vuelo?
 
-Demo de IsItLate?: metes tu número de vuelo y te contamos, de forma visual y humana, dónde
-anda de verdad el avión que va a operar tu vuelo (su rotación anterior), no solo "retrasado
-X minutos".
+Demo de IsItLate?: metes tu número de vuelo y te contamos, de forma visual y humana, lo que
+de verdad va a pasar con él. No la versión de la aerolínea: la que dicen los datos.
+
+**Sobre el claim.** El titular original preguntaba "¿va a llegar tarde tu avión?". Se cambió
+por tres motivos: es una pregunta de sí/no cuya respuesta suele ser "no", solo convoca a
+quien ya está preocupado, y describe la pregunta en vez de la relación, que es donde vive la
+marca. "¿Cómo va tu vuelo?" es lo que diría un colega, funciona con cualquier respuesta y
+sigue siendo una pregunta, así que no pelea con el nombre.
+
+El subtítulo prometía contar "dónde anda de verdad el avión que viene a por ti". Las
+mediciones contra el proveedor demostraron que eso no se puede saber antes del despegue, así
+que pasó a prometer lo que sí se cumple.
 
 > **Modo demo.** Todavía no hay ninguna API de vuelos conectada: cualquier número de vuelo
 > devuelve la misma rotación de ejemplo, rotulada con el código que escribas.

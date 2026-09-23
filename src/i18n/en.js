@@ -5,19 +5,21 @@ const f = FORMATTERS.en
 export default {
   code: 'en',
   htmlLang: 'en',
-  documentTitle: 'IsItLate? — Is your plane running late?',
+  documentTitle: "IsItLate? — How's your flight looking?",
   label: 'English',
 
   ui: {
     realData: (when) => `Real data for this flight, pulled on ${when}`,
     eyebrow: '● demo mode · sample data',
     h1: [
-      { text: 'Is your plane' },
+      { text: "How's" },
       { br: true },
-      { text: 'running late', highlight: true },
-      { text: '?' },
+      { text: 'your flight', highlight: true },
+      { text: ' looking?' },
     ],
-    sub: "Skip the airline fine print. We'll tell you where your plane actually is right now, the way a friend who works the ramp would.",
+    // Igual que en español: prometía decir dónde está el avión ahora mismo, y
+    // eso no se puede saber antes del despegue. Se ajusta a lo que sí damos.
+    sub: "Skip the airline fine print. We'll tell you what's actually going to happen with your flight, the way a friend who works the ramp would.",
     searchLabel: 'Flight number',
     searchButton: 'Am I late?',
     hint: "Try any flight number — it's a demo.",

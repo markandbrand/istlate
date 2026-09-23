@@ -5,19 +5,23 @@ const f = FORMATTERS.es
 export default {
   code: 'es',
   htmlLang: 'es',
-  documentTitle: 'IsItLate? — ¿Va a llegar tarde tu avión?',
+  documentTitle: 'IsItLate? — ¿Cómo va tu vuelo?',
   label: 'Español',
 
   ui: {
     realData: (when) => `Datos reales de este vuelo, consultados el ${when}`,
     eyebrow: '● modo demo · datos de ejemplo',
     h1: [
-      { text: '¿Va a llegar' },
+      { text: '¿Cómo va' },
       { br: true },
-      { text: 'tarde', highlight: true },
-      { text: ' tu avión?' },
+      { text: 'tu vuelo', highlight: true },
+      { text: '?' },
     ],
-    sub: 'No leas letra pequeña de aerolínea. Te contamos, como lo haría un colega, dónde anda de verdad el avión que viene a por ti.',
+    // Antes prometía contar "dónde anda el avión que viene a por ti". Las
+    // mediciones contra el proveedor demostraron que eso no se puede saber
+    // hasta que el avión despega, así que la promesa se ajusta a lo que sí
+    // cumplimos: contar lo que de verdad va a pasar con el vuelo.
+    sub: 'No leas letra pequeña de aerolínea. Te contamos, como lo haría un colega, lo que de verdad va a pasar con tu vuelo.',
     searchLabel: 'Número de vuelo',
     searchButton: '¿Va tarde?',
     hint: 'Prueba con cualquier número — es una demo.',
