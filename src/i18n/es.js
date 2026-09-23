@@ -23,7 +23,7 @@ export default {
     // cumplimos: contar lo que de verdad va a pasar con el vuelo.
     sub: 'No leas letra pequeña de aerolínea. Te contamos, como lo haría un colega, lo que de verdad va a pasar con tu vuelo.',
     searchLabel: 'Número de vuelo',
-    searchButton: '¿Va tarde?',
+    searchButton: 'Cuéntamelo',
     hint: 'Prueba con cualquier número — es una demo.',
     hintAction: (code) => `Usar ${code}`,
     switcherTitle: 'Modo demo · pulsa para ver cada situación',

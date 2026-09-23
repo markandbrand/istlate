@@ -21,7 +21,7 @@ export default {
     // eso no se puede saber antes del despegue. Se ajusta a lo que sí damos.
     sub: "Skip the airline fine print. We'll tell you what's actually going to happen with your flight, the way a friend who works the ramp would.",
     searchLabel: 'Flight number',
-    searchButton: 'Am I late?',
+    searchButton: 'Fill me in',
     hint: "Try any flight number — it's a demo.",
     hintAction: (code) => `Use ${code}`,
     switcherTitle: 'Demo mode · tap to see each situation',
