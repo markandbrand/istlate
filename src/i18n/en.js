@@ -1,4 +1,5 @@
 import { FORMATTERS } from './format.js'
+import { LEGAL } from '../data/legal.js'
 
 const f = FORMATTERS.en
 
@@ -7,6 +8,70 @@ export default {
   htmlLang: 'en',
   documentTitle: "IsItLate? — How's your flight looking?",
   label: 'English',
+
+  privacy: {
+    title: 'Privacy policy',
+    updated: 'Last updated:',
+    draftTitle: 'Unfinished draft',
+    draftBody:
+      'The data controller details are missing from src/data/legal.js. This page should not go live like this: an incomplete policy looks like compliance without being it.',
+    sections: [
+      {
+        h: 'Who handles your data',
+        body: [
+          `Controller: ${LEGAL.titular || '[FILL IN: name or company]'} (tax ID ${LEGAL.nif || '[FILL IN]'}), registered at ${LEGAL.direccion || '[FILL IN]'}.`,
+          `Write to us at ${LEGAL.email || '[FILL IN: contact email]'} about anything to do with your data.`,
+        ],
+      },
+      {
+        h: 'What we collect',
+        body: ['Only what you type into the form, and nothing else:'],
+        list: [
+          'Your email address.',
+          'Whether you opted in to tips and recommendations, or not.',
+          'When you opted in, and the language you were browsing in.',
+        ],
+      },
+      {
+        h: "What we don't collect",
+        body: [
+          'No tracking cookies, no analytics, no social media pixels. We do not know who you are when you arrive and we do not follow you around the web.',
+          'The flight numbers you look up are not tied to any person: we use them to make the query and never store them next to your email.',
+          'We keep your language choice in your browser so we do not have to ask twice. That never leaves your device and identifies nobody.',
+        ],
+      },
+      {
+        h: 'What we use it for',
+        body: [
+          'To let you know when the site goes live with real data, which is what you asked for.',
+          'And, only if you ticked the box, to send you flight tips and the occasional recommendation. They are two separate permissions: you can have the first without the second.',
+          'The legal basis for both is your consent, and you can withdraw it whenever you want.',
+        ],
+      },
+      {
+        h: 'How long we keep it',
+        body: [
+          'Until you unsubscribe or ask us to delete it. If the project does not go ahead, we delete everything and tell you first.',
+        ],
+      },
+      {
+        h: 'Who we share it with',
+        body: [
+          `Our email provider, ${LEGAL.proveedorEmail || '[FILL IN once hired]'}, which processes it on our behalf and only to send the emails you agreed to.`,
+          'Nobody else. We do not sell or hand over data to third parties.',
+          'The flight data provider receives nothing about you: we ask it about flight numbers, not about people.',
+        ],
+      },
+      {
+        h: 'Your rights',
+        body: [
+          'You can ask us to access, correct, delete, restrict or port your data, or object to us processing it. Just email the address above.',
+          'Every email we send carries a one-click unsubscribe link.',
+          'And if you think we have got it wrong, you can complain to the Spanish Data Protection Agency (aepd.es).',
+        ],
+      },
+    ],
+  },
 
   ui: {
     progressLabel: (pct, arrival) => `${pct}% of the way through · lands around ${arrival}`,
@@ -51,6 +116,8 @@ export default {
     waitlistLegalLink: 'privacy policy',
     waitlistLegalAfter: '.',
     footer: 'IsItLate? — demo on sample data · not wired up to a live flight provider yet',
+    footerLive: 'IsItLate? · Flight data by AeroDataBox',
+    footerPrivacy: 'Privacy policy',
     years: (n) => `${n.toLocaleString('en-US')} yrs`,
   },
 

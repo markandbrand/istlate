@@ -1,4 +1,5 @@
 import { FORMATTERS } from './format.js'
+import { LEGAL } from '../data/legal.js'
 
 const f = FORMATTERS.es
 
@@ -7,6 +8,72 @@ export default {
   htmlLang: 'es',
   documentTitle: 'IsItLate? — ¿Cómo va tu vuelo?',
   label: 'Español',
+
+  privacy: {
+    title: 'Política de privacidad',
+    updated: 'Última actualización:',
+    draftTitle: 'Borrador sin completar',
+    draftBody:
+      'Faltan los datos del responsable del tratamiento en src/data/legal.js. Esta página no debe publicarse así: una política incompleta aparenta cumplimiento sin cumplir.',
+    sections: [
+      {
+        h: 'Quién trata tus datos',
+        body: [
+          `Responsable: ${LEGAL.titular || '[COMPLETAR: nombre o razón social]'} (NIF ${LEGAL.nif || '[COMPLETAR]'}), con domicilio en ${LEGAL.direccion || '[COMPLETAR]'}.`,
+          `Puedes escribirnos a ${LEGAL.email || '[COMPLETAR: email de contacto]'} para cualquier cosa relacionada con tus datos.`,
+        ],
+      },
+      {
+        h: 'Qué recogemos',
+        body: [
+          'Solo lo que nos dejas en el formulario, y nada más:',
+        ],
+        list: [
+          'Tu dirección de email.',
+          'Si aceptaste recibir además consejos y recomendaciones, o no.',
+          'La fecha y hora en que lo aceptaste, y el idioma en que navegabas.',
+        ],
+      },
+      {
+        h: 'Lo que NO recogemos',
+        body: [
+          'No usamos cookies de seguimiento, ni analítica, ni pixeles de redes sociales. No sabemos quién eres cuando entras ni te seguimos por otras webs.',
+          'Los números de vuelo que consultas no se asocian a ninguna persona: se usan para hacer la consulta y no se guardan junto a tu email.',
+          'Guardamos en tu navegador el idioma que elegiste, para no volver a preguntártelo. Eso no sale de tu dispositivo y no identifica a nadie, por lo que no requiere consentimiento.',
+        ],
+      },
+      {
+        h: 'Para qué los usamos',
+        body: [
+          'Para avisarte cuando la web esté lista con datos reales, que es lo que pediste al dejarnos el email.',
+          'Y, solo si marcaste la casilla, para enviarte consejos de vuelo y alguna recomendación ocasional. Son dos permisos distintos: puedes tener el primero sin el segundo.',
+          'La base legal de ambos es tu consentimiento, y puedes retirarlo cuando quieras.',
+        ],
+      },
+      {
+        h: 'Cuánto tiempo los guardamos',
+        body: [
+          'Hasta que te des de baja o nos pidas que los borremos. Si el proyecto no sale adelante, los eliminamos y te lo comunicamos antes.',
+        ],
+      },
+      {
+        h: 'Con quién los compartimos',
+        body: [
+          `Con nuestro proveedor de correo, ${LEGAL.proveedorEmail || '[COMPLETAR cuando se contrate]'}, que los trata por cuenta nuestra y solo para enviarte los emails que aceptaste.`,
+          'Con nadie más. No vendemos ni cedemos datos a terceros.',
+          'El proveedor de datos de vuelo no recibe ningún dato tuyo: le preguntamos por números de vuelo, no por personas.',
+        ],
+      },
+      {
+        h: 'Tus derechos',
+        body: [
+          'Puedes pedirnos acceder a tus datos, rectificarlos, suprimirlos, oponerte al tratamiento, limitarlo o llevártelos a otro sitio. Basta con escribirnos al email de arriba.',
+          'Todos los correos que te enviemos llevarán un enlace para darte de baja en un clic.',
+          'Y si crees que no lo hemos hecho bien, puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).',
+        ],
+      },
+    ],
+  },
 
   ui: {
     progressLabel: (pct, llegada) => `${pct}% del tiempo de vuelo · aterriza sobre las ${llegada}`,
@@ -53,6 +120,8 @@ export default {
     waitlistLegalLink: 'política de privacidad',
     waitlistLegalAfter: '.',
     footer: 'IsItLate? — demo con datos de ejemplo · sin conexión a proveedores de vuelo reales todavía',
+    footerLive: 'IsItLate? · Datos de vuelo de AeroDataBox',
+    footerPrivacy: 'Política de privacidad',
     years: (n) => `${n.toLocaleString('es-ES')} años`,
   },
 

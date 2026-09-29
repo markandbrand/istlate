@@ -1,7 +1,9 @@
 import { useI18n } from '../i18n/index.jsx'
+import { isDemoRequested } from '../lib/mode.js'
 
 export default function Hero({ value, onChange, onSearch, onUseDemo }) {
   const { t, demoCode } = useI18n()
+  const demo = isDemoRequested()
 
   function handleKeyDown(e) {
     if (e.key === 'Enter') onSearch()
@@ -9,9 +11,11 @@ export default function Hero({ value, onChange, onSearch, onUseDemo }) {
 
   return (
     <section className="pt-[52px] pb-[34px] text-center">
-      <span className="mb-5 inline-flex items-center gap-2 rounded-full bg-blue-dim px-[14px] py-[6px] font-mono text-[12px] tracking-[0.1em] text-blue uppercase">
-        {t.eyebrow}
-      </span>
+      {demo && (
+        <span className="mb-5 inline-flex items-center gap-2 rounded-full bg-blue-dim px-[14px] py-[6px] font-mono text-[12px] tracking-[0.1em] text-blue uppercase">
+          {t.eyebrow}
+        </span>
+      )}
 
       <h1 className="mt-0 mb-4 font-display text-[clamp(36px,6vw,60px)] leading-[1.08] font-bold text-ink text-balance">
         {t.h1.map((part, i) =>
@@ -55,16 +59,20 @@ export default function Hero({ value, onChange, onSearch, onUseDemo }) {
         </button>
       </div>
 
-      <div className="mt-[14px] text-[13px] text-ink-dim">
-        {t.hint}{' '}
-        <button
-          type="button"
-          onClick={onUseDemo}
-          className="cursor-pointer border-none bg-transparent p-0 font-semibold text-blue underline underline-offset-[3px]"
-        >
-          {t.hintAction(demoCode)}
-        </button>
-      </div>
+      {/* La pista y el atajo al vuelo de ejemplo son andamiaje de la demo: en
+          producción la gente escribe su propio vuelo y esto solo resta. */}
+      {demo && (
+        <div className="mt-[14px] text-[13px] text-ink-dim">
+          {t.hint}{' '}
+          <button
+            type="button"
+            onClick={onUseDemo}
+            className="cursor-pointer border-none bg-transparent p-0 font-semibold text-blue underline underline-offset-[3px]"
+          >
+            {t.hintAction(demoCode)}
+          </button>
+        </div>
+      )}
     </section>
   )
 }

@@ -9,6 +9,11 @@ import Waitlist from './components/Waitlist.jsx'
 import SiteFooter from './components/SiteFooter.jsx'
 import { lookupFlight } from './data/flightApi.js'
 import { useI18n } from './i18n/index.jsx'
+import { isDemoRequested } from './lib/mode.js'
+import PrivacyPage from './components/PrivacyPage.jsx'
+
+/** Rutas de la política de privacidad, una por idioma. */
+const RUTAS_PRIVACIDAD = ['/privacidad', '/privacy']
 
 export default function App() {
   const { locale, fixtures, demoCode } = useI18n()
@@ -17,8 +22,10 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [scenario, setScenario] = useState(null)
-  // Asumimos modo demo hasta que el backend devuelva datos reales.
-  const [isDemo, setIsDemo] = useState(true)
+  // En producción no se enseña el selector salvo que se pida con ?demo=1.
+  // Si el backend responde sin key, vuelve a modo demo para no dejar la web
+  // muerta: mejor enseñar escenarios de ejemplo que una página rota.
+  const [isDemo, setIsDemo] = useState(isDemoRequested)
   // Cambia en cada búsqueda para remontar el resultado y repetir la animación.
   const [searchId, setSearchId] = useState(0)
   const resultRef = useRef(null)
@@ -46,7 +53,7 @@ export default function App() {
       const result = await lookupFlight(code, { fixtures, demoCode })
       if (id !== lastSearch.current) return
       setFlight(result)
-      setIsDemo(Boolean(result.demo))
+      setIsDemo(isDemoRequested() || Boolean(result.demo))
       setScenario(Object.keys(fixtures).find((k) => fixtures[k].code === result.code) ?? null)
     } catch (err) {
       if (id !== lastSearch.current) return
@@ -79,6 +86,24 @@ export default function App() {
   }, [searchId])
 
   const showing = loading || error || flight
+
+  // Dos rutas no justifican una librería de enrutado: el .htaccess y los
+  // redirects del SPA ya mandan cualquier ruta a index.html, y aquí se decide
+  // qué pintar.
+  const enPrivacidad =
+    typeof window !== 'undefined' && RUTAS_PRIVACIDAD.includes(window.location.pathname)
+
+  if (enPrivacidad) {
+    return (
+      <>
+        <Sky />
+        <div className="relative z-[2] mx-auto max-w-[900px] px-6">
+          <PrivacyPage />
+          <SiteFooter />
+        </div>
+      </>
+    )
+  }
 
   return (
     <>

@@ -73,7 +73,7 @@ export default function Waitlist() {
 
           <p className="mt-2.5 mb-0 text-[11.5px] leading-[1.45] text-muted">
             {t.waitlistLegalBefore}
-            <a href="/privacidad" className="text-ink-dim underline underline-offset-2">
+            <a href={locale === 'en' ? '/privacy' : '/privacidad'} className="text-ink-dim underline underline-offset-2">
               {t.waitlistLegalLink}
             </a>
             {t.waitlistLegalAfter}
