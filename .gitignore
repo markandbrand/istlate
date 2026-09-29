@@ -12,3 +12,7 @@ yarn-error.log*
 
 # Respuestas guardadas por la sonda
 probe-*.json
+
+# La key del proveedor y la caché del servidor PHP
+php/api/config.php
+php/.cache/

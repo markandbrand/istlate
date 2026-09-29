@@ -93,6 +93,11 @@ src/
     PlaneIcon.jsx           icono de avión compartido
 netlify/functions/flight.js función serverless (Netlify)
 functions/api/flight.js     función serverless (Cloudflare Pages)
+php/                        el mismo backend en PHP, para hosting compartido
+  api/flight.php            gemelo de src/lib/flightService.js
+  api/adapter.php           gemelo de src/lib/adapter.js
+  .htaccess                 enrutado de Apache
+  LEEME.md                  qué subir y dónde va la key
 public/
   favicon.svg
   _redirects                fallback SPA para Cloudflare Pages
@@ -254,6 +259,16 @@ npm run dev
 `vite.config.js` monta `/api/flight` en desarrollo con el mismo `handleFlightRequest` que
 usa la función serverless, así que lo que ves en local es exactamente lo que se despliega.
 Sin key, sigue en modo demo.
+
+### Alojarlo en un hosting compartido (SiteGround y similares)
+
+Si no quieres depender de Netlify ni de Cloudflare, `php/` trae el mismo backend
+escrito en PHP, que es el terreno natural de estos hostings. Las instrucciones están en
+`php/LEEME.md`.
+
+Los dos backends se han contrastado campo a campo contra cuatro respuestas reales del
+proveedor: devuelven un JSON idéntico. Esa comparación destapó además un fallo en el
+adaptador de JavaScript que solo se habría visto con datos reales.
 
 ### 5. Despliega
 

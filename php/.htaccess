@@ -1,0 +1,28 @@
+# Enrutado para SiteGround (Apache).
+#
+# El orden importa: si el comodín del SPA fuese primero se comería /api/flight
+# y la web recibiría el HTML en vez de los datos del vuelo.
+
+RewriteEngine On
+
+# 1) La API, antes que nada.
+RewriteRule ^api/flight/?$ /api/flight.php [L,QSA]
+
+# 2) La caché y la configuración no se sirven nunca.
+RewriteRule ^\.cache/ - [F,L]
+<Files "config.php">
+  Require all denied
+</Files>
+
+# 3) SPA: lo que no sea un archivo real cae en index.html.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ /index.html [L]
+
+# Los assets llevan hash en el nombre, así que se pueden cachear para siempre.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 month"
+</IfModule>

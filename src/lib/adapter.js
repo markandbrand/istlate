@@ -89,20 +89,24 @@ export function buildRotation(yourFlight, aircraftFlights = []) {
     const state = llegado ? 'done' : salido ? 'active' : 'pending'
     const delay = delayMinutes(f.departure)
 
-    let tag
-    if (llegado) tag = `🛬 Aterrizó · ${hhmm(f.arrival?.revisedTime ?? f.arrival?.scheduledTime)}`
-    else if (salido) tag = '✈️ En vuelo ahora mismo'
-    else tag = 'Pendiente'
-    if (delay > 0 && !salido && !llegado) tag += ` (+${delay} min)`
+    // La etiqueta va estructurada, no como texto: la escribe el idioma activo
+    // (copy.tag en src/i18n/<lang>.js). Antes salía en español fijo, lo que
+    // además de romper el inglés dejaba la etiqueta vacía, porque Rotation.jsx
+    // busca `tag.kind` y en una cadena no existe.
+    const tag = llegado
+      ? { kind: 'landed', time: hhmm(f.arrival?.revisedTime ?? f.arrival?.scheduledTime) }
+      : salido
+        ? { kind: 'inFlight' }
+        : { kind: 'pending' }
 
-    return { airport: city(f.arrival), iata: iata(f.arrival), state, tag }
+    return { airport: city(f.arrival), iata: iata(f.arrival), state, tag, delayMin: delay }
   })
 
   legs.push({
     airport: city(yourFlight.arrival),
     iata: iata(yourFlight.arrival),
     state: 'final',
-    tag: '🎯 Tu vuelo',
+    tag: { kind: 'yourFlight' },
   })
 
   return legs
