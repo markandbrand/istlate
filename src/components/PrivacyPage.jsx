@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { LEGAL, LEGAL_COMPLETO } from '../data/legal.js'
 import { useI18n } from '../i18n/index.jsx'
 
@@ -8,10 +9,22 @@ import { useI18n } from '../i18n/index.jsx'
  * España. NO sustituye a una revisión jurídica: cubre el caso concreto de esta
  * web (un formulario de email y nada más) y habrá que ampliarla en cuanto
  * aparezcan pagos, cuentas de usuario o analítica.
+ *
+ * La URL manda sobre el idioma: quien abre /privacy espera leerla en inglés
+ * aunque su navegador esté en español, porque es el enlace que alguien le ha
+ * pasado. Se fija una sola vez, de modo que si luego cambia de idioma con el
+ * interruptor, se respeta.
  */
-export default function PrivacyPage() {
-  const { copy } = useI18n()
+export default function PrivacyPage({ forceLocale }) {
+  const { copy, locale, setLocale } = useI18n()
   const p = copy.privacy
+
+  useEffect(() => {
+    if (forceLocale && forceLocale !== locale) setLocale(forceLocale)
+    // Solo al entrar: sin `locale` en las dependencias, el interruptor sigue
+    // mandando si la persona decide cambiarlo después.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forceLocale])
 
   return (
     <div className="mx-auto max-w-[720px] pt-[26px] pb-[80px]">

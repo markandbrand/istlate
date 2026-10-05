@@ -13,10 +13,10 @@ import { isDemoRequested } from './lib/mode.js'
 import PrivacyPage from './components/PrivacyPage.jsx'
 
 /** Rutas de la política de privacidad, una por idioma. */
-const RUTAS_PRIVACIDAD = ['/privacidad', '/privacy']
+const RUTAS_PRIVACIDAD = { '/privacidad': 'es', '/privacy': 'en' }
 
 export default function App() {
-  const { locale, fixtures, demoCode } = useI18n()
+  const { locale, setLocale, fixtures, demoCode } = useI18n()
   const [query, setQuery] = useState('')
   const [flight, setFlight] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -90,15 +90,15 @@ export default function App() {
   // Dos rutas no justifican una librería de enrutado: el .htaccess y los
   // redirects del SPA ya mandan cualquier ruta a index.html, y aquí se decide
   // qué pintar.
-  const enPrivacidad =
-    typeof window !== 'undefined' && RUTAS_PRIVACIDAD.includes(window.location.pathname)
+  const ruta = typeof window !== 'undefined' ? window.location.pathname : ''
+  const idiomaDeLaRuta = RUTAS_PRIVACIDAD[ruta] ?? null
 
-  if (enPrivacidad) {
+  if (idiomaDeLaRuta) {
     return (
       <>
         <Sky />
         <div className="relative z-[2] mx-auto max-w-[900px] px-6">
-          <PrivacyPage />
+          <PrivacyPage forceLocale={idiomaDeLaRuta} />
           <SiteFooter />
         </div>
       </>
