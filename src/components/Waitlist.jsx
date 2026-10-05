@@ -53,7 +53,7 @@ export default function Waitlist() {
             />
             <button
               type="submit"
-              className="cursor-pointer rounded-[11px] border-none bg-blue px-5 font-display text-[14px] font-semibold text-white hover:bg-blue-hover"
+              className="cursor-pointer rounded-[11px] border-none bg-olo px-5 font-display text-[14px] font-semibold text-on-accent hover:bg-olo-hover"
             >
               {t.waitlistButton}
             </button>

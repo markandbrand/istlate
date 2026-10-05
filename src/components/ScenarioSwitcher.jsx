@@ -30,7 +30,7 @@ export default function ScenarioSwitcher({ active, onPick }) {
             aria-pressed={active === key}
             className={
               active === key
-                ? 'cursor-pointer rounded-full border-2 border-blue bg-blue px-3.5 py-1.5 text-[12.5px] font-semibold text-white'
+                ? 'cursor-pointer rounded-full border-2 border-olo bg-olo px-3.5 py-1.5 text-[12.5px] font-semibold text-on-accent'
                 : 'cursor-pointer rounded-full border-2 border-line bg-card px-3.5 py-1.5 text-[12.5px] font-semibold text-ink-dim hover:border-blue hover:text-blue'
             }
           >

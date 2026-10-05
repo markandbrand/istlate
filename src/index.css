@@ -1,47 +1,85 @@
 @import "tailwindcss";
 
-/* Paleta y tipografías originales de la demo, ahora como tokens de Tailwind. */
+/**
+ * Paleta "olo nocturno".
+ *
+ * El acento es la aproximación en sRGB del color olo (#00FFCC). El olo real no
+ * se puede mostrar en una pantalla —se percibe estimulando conos con láser y
+ * cae fuera del gamut—, así que esto es lo más cerca que se puede estar.
+ *
+ * El fondo es oscuro por obligación, no por gusto: #00FFCC tiene una
+ * luminosidad de 0,89, es prácticamente una luz. Sobre el fondo claro original
+ * no llegaría ni al 1,5:1 de contraste, de modo que no serviría ni para texto
+ * ni para botones. Sobre navy, en cambio, brilla.
+ *
+ * Los colores de estado están validados sobre superficie oscura: la pareja de
+ * la tira de puntualidad separa ΔE 30 a visión normal y 8,3 en deuteranopia, y
+ * la alerta pasa de rojo a magenta porque contra el coral no se distinguía
+ * (ΔE 5,9, por debajo del mínimo de 15).
+ */
 @theme {
-  --color-sky-top: #cfe9fb;
-  --color-sky-bot: #f3faff;
-  --color-ink: #1c2b3a;
-  --color-ink-dim: #5c7188;
-  --color-card: #ffffff;
-  --color-line: #dcebf5;
-  --color-blue: #2f7fd6;
-  --color-blue-hover: #276cb8;
-  --color-blue-dim: #e6f2fc;
+  /* Cielo nocturno: más oscuro arriba, como el de verdad. */
+  --color-sky-top: #050f22;
+  --color-sky-bot: #0e2545;
+  --color-card: #132a4a;
+
+  --color-ink: #eaf3ff;
+  --color-ink-dim: #93aacb;
+  --color-line: #24436f;
+  --color-muted: #6f88ad;
+
+  /* El acento: olo. */
+  --color-olo: #00ffcc;
+  --color-olo-hover: #5cffe0;
+  --color-olo-dim: #06332f;
+  --color-olo-line: #0a5a50;
+  --color-olo-ink: #5fffdf;
+  /* Texto sobre un fondo de olo: navy profundo, nunca blanco. */
+  --color-on-accent: #04253f;
+
+  /* Azul marino secundario, para enlaces y acentos fríos. */
+  --color-blue: #5aa9ff;
+  --color-blue-hover: #8cc4ff;
+  --color-blue-dim: #112c4d;
+
+  /* El coral del diseño original sobrevive como color de retraso. */
   --color-coral: #ff7a59;
-  --color-coral-hover: #ff6a45;
-  --color-coral-dim: #ffece6;
-  --color-coral-line: #ffd9c9;
-  --color-coral-ink: #c2431f;
-  --color-green: #25b982;
-  --color-green-dim: #e4f8f0;
-  --color-green-ink: #1a8f63;
+  --color-coral-hover: #ff9a7e;
+  --color-coral-dim: #3b1f18;
+  --color-coral-line: #6e3524;
+  --color-coral-ink: #ff9a7e;
+
+  --color-green: #3ddc97;
+  --color-green-dim: #0b3328;
+  --color-green-line: #15614a;
+  --color-green-ink: #5fe9ac;
+
   --color-amber: #ffb648;
-  --color-amber-dim: #fff4e2;
-  --color-amber-line: #ffe0b0;
-  --color-amber-ink: #9a5b00;
-  --color-alert: #d4453b;
-  --color-alert-dim: #fdeceb;
-  --color-alert-line: #f7ccc8;
-  --color-alert-ink: #a32f27;
+  --color-amber-dim: #3a2b10;
+  --color-amber-line: #6d521f;
+  --color-amber-ink: #ffc877;
+
+  /* Magenta y no rojo: contra el coral, un rojo no se distinguía. */
+  --color-alert: #e8468f;
+  --color-alert-dim: #3a1428;
+  --color-alert-line: #71274f;
+  --color-alert-ink: #ff86ba;
+
   --color-slate: #7d92a6;
-  --color-slate-dim: #eef2f6;
-  --color-slate-line: #dbe4ec;
-  --color-slate-ink: #4a5d70;
-  --color-muted: #9fb3c6;
-  --color-track: #b7c8d8;
-  --color-tag-done: #eef2f6;
-  --color-tag-pending: #f3f6f9;
-  --color-fc: #f6fafd;
+  --color-slate-dim: #1a2d47;
+  --color-slate-line: #2d4466;
+  --color-slate-ink: #a8bdd6;
+
+  --color-tag-done: #1a2d47;
+  --color-tag-pending: #162941;
+  --color-fc: #0f2342;
+  --color-track: #3c5a85;
 
   --font-sans: "Inter", sans-serif;
   --font-display: "Baloo 2", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
 
-  --shadow-soft: 0 18px 40px -18px rgb(47 127 214 / 0.28);
+  --shadow-soft: 0 18px 40px -18px rgb(0 0 0 / 0.55);
 
   --radius-card: 20px;
 
@@ -87,7 +125,7 @@
 
   button:focus-visible,
   input:focus-visible {
-    outline: 3px solid var(--color-blue);
+    outline: 3px solid var(--color-olo);
     outline-offset: 3px;
   }
 

@@ -60,7 +60,7 @@ export default function FlightResult({ flight }) {
         </div>
         {verdict.advice && (
           <p
-            className={`mt-3 mb-0 border-t border-white/70 pt-3 text-[13.5px] leading-[1.5] font-semibold text-ink ${
+            className={`mt-3 mb-0 border-t border-ink/15 pt-3 text-[13.5px] leading-[1.5] font-semibold text-ink ${
               verdict.emoji ? 'pl-[40px]' : ''
             }`}
           >
@@ -95,7 +95,7 @@ export default function FlightResult({ flight }) {
 
       {aircraft ? (
         <div className="mb-[26px] flex items-center gap-[14px] rounded-[14px] bg-blue-dim px-4 py-[14px]">
-          <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[10px] bg-white">
+          <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[10px] bg-sky-bot text-olo">
             <PlaneIcon size={22} />
           </div>
           <div>

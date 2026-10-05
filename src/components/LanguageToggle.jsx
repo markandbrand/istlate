@@ -15,7 +15,7 @@ export default function LanguageToggle() {
           aria-label={LOCALES[code].label}
           className={
             locale === code
-              ? 'cursor-pointer rounded-full border-none bg-blue px-2.5 py-1 font-mono text-[11px] font-semibold tracking-[0.06em] text-white uppercase'
+              ? 'cursor-pointer rounded-full border-none bg-olo px-2.5 py-1 font-mono text-[11px] font-semibold tracking-[0.06em] text-on-accent uppercase'
               : 'cursor-pointer rounded-full border-none bg-transparent px-2.5 py-1 font-mono text-[11px] font-semibold tracking-[0.06em] text-ink-dim uppercase hover:text-blue'
           }
         >

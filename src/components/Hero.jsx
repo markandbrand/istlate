@@ -22,7 +22,7 @@ export default function Hero({ value, onChange, onSearch, onUseDemo }) {
           part.br ? (
             <br key={i} />
           ) : part.highlight ? (
-            <span key={i} className="text-coral">
+            <span key={i} className="text-olo">
               {part.text}
             </span>
           ) : (
@@ -53,7 +53,7 @@ export default function Hero({ value, onChange, onSearch, onUseDemo }) {
         <button
           type="button"
           onClick={onSearch}
-          className="cursor-pointer rounded-[11px] border-none bg-coral px-[22px] font-display text-[15px] font-semibold whitespace-nowrap text-white transition-[background-color,transform] duration-150 ease-in-out hover:-translate-y-px hover:bg-coral-hover"
+          className="cursor-pointer rounded-[11px] border-none bg-olo px-[22px] font-display text-[15px] font-semibold whitespace-nowrap text-on-accent transition-[background-color,transform] duration-150 ease-in-out hover:-translate-y-px hover:bg-olo-hover"
         >
           {t.searchButton}
         </button>

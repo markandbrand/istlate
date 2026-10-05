@@ -16,6 +16,19 @@ que pasó a prometer lo que sí se cumple.
 > **Modo demo.** Todavía no hay ninguna API de vuelos conectada: cualquier número de vuelo
 > devuelve la misma rotación de ejemplo, rotulada con el código que escribas.
 
+## 🎨 Punto de retorno del diseño
+
+El diseño azul cielo con acento coral —nubes y avión animados incluidos— está en el commit
+**`b6a626d`**, etiquetado en local como `diseno-azul-coral-v1`.
+
+Para volver a él si un experimento de paleta no convence:
+
+```bash
+git checkout b6a626d -- src/index.css src/lib/tones.js
+```
+
+(o `git checkout b6a626d` entero, si se quiere revisar la versión completa).
+
 ## 📍 Dónde estamos
 
 **Listo y funcionando:** la web bilingüe con los diez estados, el motor de veredicto, el
