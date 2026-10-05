@@ -41,7 +41,7 @@ export function ErrorCard({ message, onRetry }) {
       <button
         type="button"
         onClick={onRetry}
-        className="cursor-pointer rounded-[11px] border-none bg-olo px-5 py-3 font-display text-[14px] font-semibold text-on-accent hover:bg-olo-hover"
+        className="cursor-pointer rounded-[11px] border-none bg-blue px-5 py-3 font-display text-[14px] font-semibold text-white hover:bg-blue-hover"
       >
         {t.errorRetry}
       </button>

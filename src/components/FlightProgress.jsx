@@ -28,11 +28,11 @@ export default function FlightProgress({ from, to, pct, label }) {
           aria-label={label}
         >
           <div
-            className="absolute inset-y-0 left-0 rounded-full bg-olo"
+            className="absolute inset-y-0 left-0 rounded-full bg-blue"
             style={{ width: `${clamped}%` }}
           />
           <div
-            className="absolute top-1/2 flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-olo-line bg-sky-bot text-olo shadow-soft"
+            className="absolute top-1/2 flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-blue-dim bg-white shadow-soft"
             style={{ left: `${clamped}%` }}
           >
             <PlaneIcon size={15} className="rotate-90" />

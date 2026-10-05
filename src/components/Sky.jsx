@@ -34,10 +34,10 @@ export default function Sky() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
       {CLOUDS.map((cloud, i) => (
-        <div key={i} className={`absolute opacity-70 ${cloud.className}`}>
+        <div key={i} className={`absolute opacity-90 ${cloud.className}`}>
           <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" className="block h-full w-full">
             {cloud.shapes.map((s, j) => (
-              <ellipse key={j} cx={s.cx} cy={s.cy} rx={s.rx} ry={s.ry} fill="var(--color-card)" />
+              <ellipse key={j} cx={s.cx} cy={s.cy} rx={s.rx} ry={s.ry} fill="#fff" />
             ))}
           </svg>
         </div>
@@ -47,15 +47,15 @@ export default function Sky() {
         <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
           <path
             d="M4 40 L40 40"
-            stroke="var(--color-olo-line)"
+            stroke="#c7defa"
             strokeWidth="3"
             strokeDasharray="1 8"
             strokeLinecap="round"
           />
           <g transform="translate(38,26)">
-            <path d="M0 8 L34 8 L28 2 L34 8 L28 14 L0 8 Z" fill="var(--color-olo)" />
-            <path d="M14 8 L6 -4 L11 -4 L20 6 Z" fill="var(--color-olo)" />
-            <path d="M14 10 L6 20 L11 20 L20 12 Z" fill="var(--color-olo)" />
+            <path d="M0 8 L34 8 L28 2 L34 8 L28 14 L0 8 Z" fill="#2f7fd6" />
+            <path d="M14 8 L6 -4 L11 -4 L20 6 Z" fill="#2f7fd6" />
+            <path d="M14 10 L6 20 L11 20 L20 12 Z" fill="#2f7fd6" />
           </g>
         </svg>
       </div>

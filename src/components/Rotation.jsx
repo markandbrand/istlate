@@ -1,7 +1,7 @@
 const NODE_STYLES = {
   done: 'bg-track shadow-[0_0_0_2px_var(--color-track)]',
   active: 'bg-coral shadow-[0_0_0_4px_var(--color-coral-dim)]',
-  pending: 'bg-card shadow-[0_0_0_2px_var(--color-line)]',
+  pending: 'bg-white shadow-[0_0_0_2px_var(--color-line)]',
   final: 'bg-green shadow-[0_0_0_4px_var(--color-green-dim)]',
 }
 
@@ -45,7 +45,7 @@ export default function Rotation({ legs }) {
           <div key={`${leg.iata}-${i}`} className="relative grid grid-cols-[60px_1fr] gap-4">
             <div className="relative flex flex-col items-center">
               <div
-                className={`z-[2] h-4 w-4 shrink-0 rounded-full border-[3px] border-card ${NODE_STYLES[leg.state]}`}
+                className={`z-[2] h-4 w-4 shrink-0 rounded-full border-[3px] border-white ${NODE_STYLES[leg.state]}`}
               />
               {!isLast && (
                 <div className={`min-h-[42px] w-[3px] flex-1 rounded-sm ${STEM_STYLES[leg.state]}`} />
