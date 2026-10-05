@@ -16,6 +16,25 @@ que pasó a prometer lo que sí se cumple.
 > **Modo demo.** Todavía no hay ninguna API de vuelos conectada: cualquier número de vuelo
 > devuelve la misma rotación de ejemplo, rotulada con el código que escribas.
 
+## 🎨 Sobre la paleta
+
+El diseño es el azul cielo con acento coral, nubes y avión animados. En octubre de 2026 se
+probó una alternativa construida sobre el color **olo** (su aproximación en sRGB, `#00FFCC`,
+porque el olo real cae fuera del gamut y no se puede mostrar en pantalla) y se descartó.
+
+Queda escrito por si vuelve a tentar, con lo que se aprendió al medirlo:
+
+- **`#00FFCC` obliga a fondo oscuro.** Con una luminosidad de 0,89 es prácticamente una luz:
+  sobre el fondo claro no llega a 1,5:1 de contraste, así que no sirve ni para texto ni para
+  botones. La paleta entera tenía que irse a azul marino.
+- **El rojo de cancelado tenía que pasar a magenta.** Contra el coral quedaba a ΔE 5,9,
+  por debajo del mínimo de 15: eran el mismo color para cualquiera.
+- Y la razón de fondo para volver: el azul claro **acoge** y el navy **impresiona**. La marca
+  va de que un colega te lo cuente, no de deslumbrar.
+
+El experimento está en el commit `015f653` y su reversión en el siguiente, por si alguna vez
+se quiere recuperar el trabajo de la paleta oscura.
+
 ## 📍 Dónde estamos
 
 **Listo y funcionando:** la web bilingüe con los diez estados, el motor de veredicto, el
