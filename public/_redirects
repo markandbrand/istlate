@@ -1,5 +1,10 @@
-# La API primero: el comodín de abajo se la comería.
-/api/flight  /.netlify/functions/flight  200
+# Este archivo lo leen tanto Netlify como Cloudflare Pages, así que solo
+# puede contener reglas válidas en los dos.
+#
+# La ruta de la API NO va aquí: en Netlify la declaran netlify.toml y el
+# propio `config.path` de la función, y en Cloudflare la da la ubicación de
+# functions/api/flight.js. Una regla hacia /.netlify/... desviaría la API a
+# una ruta inexistente al desplegar en Cloudflare.
 
-# SPA: el resto cae en index.html
+# SPA: lo que no sea un archivo ni una función cae en index.html
 /*  /index.html  200
