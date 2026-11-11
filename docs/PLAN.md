@@ -166,9 +166,10 @@ te está prometiendo 23 minutos que no se van a cumplir".
 
 ## ⚠️ Diferencias menores (manda el repo, según la regla del propio brief)
 
-- **Idioma.** §1 dice "todo en español". El repo tiene versión inglesa
-  completa, adaptada y no traducida. No se quita; si se lanza solo en
-  español, basta con ocultar el selector.
+- **Idioma: NO es un choque.** §1 dice "todo en español", pero Fer confirmó
+  el 11/11 que el producto es bilingüe español + inglés y que el brief
+  simplemente no lo recogía. La versión inglesa del repo (adaptada, no
+  traducida) es la correcta y **no se toca**.
 - **Mensaje de portada.** §3 propone "¿Vas a recoger a alguien al
   aeropuerto?". El repo lleva "¿Cómo va tu vuelo?", elegido expresamente por
   Fer. Se mantiene; "voy a recoger" sirve igual como gancho de contenido.
