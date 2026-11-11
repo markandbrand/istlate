@@ -151,8 +151,15 @@ tu vuelo y dónde está ahora**. Está medido con vuelos reales y **no se puede*
   confirman. Detalle en el README, sección de hallazgos.
 - Siete días del IB1082 dieron **seis aviones distintos**, así que tampoco hay
   patrón que aprender.
-- No es un límite del proveedor: es cómo opera la aerolínea. Ningún proveedor
-  lo arregla, porque el dato no existe aún.
+- **Matiz importante (corregido el 11/11):** no es que el dato no exista en
+  el mundo. Flighty sigue el avión asignado hasta 25 horas antes, así que
+  alguien lo vende. Lo que es cierto es más estrecho: **AeroDataBox no lo da**,
+  ni en el plan gratuito ni en los de pago que hemos mirado. Es una limitación
+  de proveedor y de presupuesto, no una ley física.
+- Consecuencia práctica: la función no está muerta, está aparcada. El día que
+  haya ingresos, toca volver a evaluar proveedores (FlightAware AeroAPI, Cirium
+  u OAG) mirando específicamente si publican la matrícula asignada antes del
+  despegue, y a qué coste por consulta. Hasta entonces, no prometerla.
 
 **El sustituto salió de los mismos datos y es mejor:** el proveedor publica su
 propia predicción de llegada (`arrival.predictedTime`) y **no coincide con lo
