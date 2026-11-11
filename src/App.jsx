@@ -11,6 +11,7 @@ import { lookupFlight } from './data/flightApi.js'
 import { useI18n } from './i18n/index.jsx'
 import { isDemoRequested } from './lib/mode.js'
 import PrivacyPage from './components/PrivacyPage.jsx'
+import { LEGAL_COMPLETO } from './data/legal.js'
 
 /** Rutas de la política de privacidad, una por idioma. */
 const RUTAS_PRIVACIDAD = { '/privacidad': 'es', '/privacy': 'en' }
@@ -124,7 +125,11 @@ export default function App() {
               {flight && !loading && !error && <FlightResult flight={flight} />}
             </div>
 
-            {flight && !loading && !error && <Waitlist />}
+            {/* La lista de espera solo aparece si la política de privacidad está
+                completa. Pedir un email sin un responsable identificado no es
+                legal, y es un fallo fácil de cometer al publicar con prisa: así
+                el formulario se enciende solo el día que se rellena legal.js. */}
+            {flight && !loading && !error && LEGAL_COMPLETO && <Waitlist />}
           </section>
         )}
 

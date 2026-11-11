@@ -68,6 +68,69 @@ export function predictedDelay(movement) {
   return Math.max(0, diff)
 }
 
+/** Suma (o resta, en negativo) minutos a un "HH:MM", cruzando medianoche. */
+function shift(time, mins) {
+  if (!time) return null
+  const total = (Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5)) + mins + 1440) % 1440
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+}
+
+/** Cuánto se abre la ventana por delante y por detrás, en minutos. */
+const MARGEN_TEMPRANO_MIN = 5
+const MARGEN_TARDIO_MIN = 15
+const VENTANA_LLEGADA_MIN = 10
+
+/**
+ * Nuestra estimación: la franja horaria que de verdad le importa al usuario.
+ *
+ * No es la hora que publica la aerolínea. Sale de cruzar lo que la aerolínea
+ * promete con la predicción propia del proveedor, que es donde vive el valor
+ * del producto: en los dos vuelos medidos las dos no coincidían, por 23 y 24
+ * minutos.
+ *
+ * Qué franja se devuelve depende de dónde está el vuelo:
+ *   · todavía en tierra → franja de SALIDA, que es la que decide a qué hora
+ *     salir de casa;
+ *   · ya en el aire o aterrizado → franja de LLEGADA, que es la que decide a
+ *     qué hora salir a recoger a alguien.
+ *
+ * `from` es siempre lo más temprano plausible y `to` lo más tardío, y ese
+ * orden importa: quien lo lee decide cuándo salir de casa. Pasarse por abajo
+ * hace esperar un rato; pasarse por arriba hace perder el vuelo.
+ */
+export function buildEstimate(flight, status) {
+  const volando = ['departed', 'enRoute', 'approaching', 'arrived'].includes(status)
+
+  if (volando) {
+    // En el aire lo único que importa es cuándo toca tierra, y ahí la
+    // predicción del proveedor manda sobre la hora revisada de la aerolínea.
+    const from =
+      hhmm(flight.arrival?.predictedTime) ??
+      hhmm(flight.arrival?.revisedTime) ??
+      hhmm(flight.arrival?.scheduledTime)
+    return from ? { from, to: shift(from, VENTANA_LLEGADA_MIN) } : null
+  }
+
+  const anchor = hhmm(flight.departure?.revisedTime) ?? hhmm(flight.departure?.scheduledTime)
+  if (!anchor) return null
+
+  // Todo el cálculo va en minutos relativos al ancla, nunca comparando horas
+  // como texto: un vuelo de las 23:50 cruza la medianoche y "00:05" es MAYOR
+  // que "23:50" aunque como cadena parezca menor.
+  //
+  // Si la predicción de llegada apunta a más retraso del que la aerolínea ya
+  // admite, ese desfase estira el extremo TARDÍO, nunca el temprano: no
+  // vamos a prometer una salida más pronta de la que está publicada.
+  const yaAdmitido = delayMinutes(flight.departure)
+  const previsto = predictedDelay(flight.arrival)
+  const margenTardio = Math.max(MARGEN_TARDIO_MIN, previsto - yaAdmitido)
+
+  return {
+    from: shift(anchor, -MARGEN_TEMPRANO_MIN),
+    to: shift(anchor, margenTardio),
+  }
+}
+
 const city = (movement) =>
   movement?.airport?.municipalityName ?? movement?.airport?.shortName ?? movement?.airport?.name ?? '—'
 const iata = (movement) => movement?.airport?.iata ?? movement?.airport?.icao ?? '—'
@@ -140,9 +203,27 @@ export function hhmmDate(time) {
   return match ? match[1] : null
 }
 
-/** Retraso acumulado del avión hoy: el del último tramo con datos. */
+/** Retraso acumulado del avión hoy: el peor de sus tramos con datos. */
 export function accumulatedDelay(aircraftFlights = []) {
   return aircraftFlights.reduce((max, f) => Math.max(max, delayMinutes(f.departure)), 0)
+}
+
+/**
+ * El retraso que se le enseña al usuario.
+ *
+ * Son dos fuentes y hacen falta las dos:
+ *   · lo que la aerolínea ya ha publicado para TU vuelo (hora revisada frente
+ *     a la programada);
+ *   · lo que arrastra el avión en sus tramos anteriores, que avisa de un
+ *     retraso que viene de camino y que todavía no han aplicado a tu vuelo.
+ *
+ * Antes solo se miraba la segunda, y la rotación está vacía siempre que no
+ * hay matrícula, o sea casi siempre antes de despegar. Un vuelo con una hora
+ * de retraso publicada salía como "sin retraso", que es justo la respuesta
+ * que no puede fallar.
+ */
+export function publishedDelay(flight, aircraftFlights = []) {
+  return Math.max(delayMinutes(flight.departure), accumulatedDelay(aircraftFlights))
 }
 
 /** Minutos de escala en tu aeropuerto entre la llegada anterior y tu salida. */
@@ -179,9 +260,11 @@ export function toInternal(flight, aircraftFlights = [], aircraftInfo = null, ra
   // Solo con matrícula o Mode-S se puede reconstruir la rotación.
   const traceable = Boolean(reg || modeS)
 
+  const status = normalizeStatus(flight.status)
+
   return {
     code: flight.number,
-    status: normalizeStatus(flight.status),
+    status,
     airline: flight.airline?.name ?? null,
     route: {
       from: { city: city(flight.departure), iata: iata(flight.departure) },
@@ -205,7 +288,7 @@ export function toInternal(flight, aircraftFlights = [], aircraftInfo = null, ra
     aircraft: reg || modeS || model
       ? { reg, modeS, model: model ?? 'Avión sin identificar', ageYears: aircraftInfo?.ageYears ?? null }
       : null,
-    delayMin: accumulatedDelay(aircraftFlights),
+    delayMin: publishedDelay(flight, aircraftFlights),
     turnaroundMin: turnaround(flight, aircraftFlights),
     // La distancia la da el propio API, así que el panel de compensación del
     // 261/2004 deja de depender de un dato inventado en los fixtures.
@@ -217,7 +300,10 @@ export function toInternal(flight, aircraftFlights = [], aircraftInfo = null, ra
     // momento en el que menos sabemos.
     predictedArrival: hhmm(flight.arrival?.predictedTime),
     predictedDelayMin: predictedDelay(flight.arrival),
-    estimate: null, // TODO: calcularlo cruzando la rotación con predictedArrival
+    // Nuestra estimación, que es lo que diferencia la tarjeta de leer la
+    // pantalla del aeropuerto. Sin esto, los paneles de "va tarde" y "ya ha
+    // salido" se quedaban en blanco con datos reales.
+    estimate: buildEstimate(flight, status),
     rotation: traceable ? buildRotation(flight, aircraftFlights) : [],
     history: buildHistory(rangeFlights),
   }
