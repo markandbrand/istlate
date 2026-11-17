@@ -27,6 +27,7 @@ export const FIXTURES = {
     code: 'FR1234', status: 'delayed', airline: 'Ryanair',
     route: { from: { city: 'Valencia', iata: 'VLC' }, to: { city: 'Londres', iata: 'LON' } },
     departure: { scheduled: '20:30', revised: '21:00', terminal: 'N1', gate: null },
+    arrival: { scheduled: '22:55', revised: '23:20', predicted: '23:35', terminal: '2' },
     aircraft: { reg: 'EI-HAT', model: 'Boeing 737 MAX 8-200', ageYears: 3.2 },
     delayMin: 36, turnaroundMin: 25, estimate: { from: '20:55', to: '21:15' },
     rotation: [
@@ -41,6 +42,7 @@ export const FIXTURES = {
     code: 'IB3200', status: 'expected', airline: 'Iberia',
     route: { from: { city: 'Madrid', iata: 'MAD' }, to: { city: 'Barcelona', iata: 'BCN' } },
     departure: { scheduled: '21:00', revised: null, terminal: 'T4', gate: 'K52' },
+    arrival: { scheduled: '22:20', revised: null, predicted: '22:25', terminal: 'T1' },
     aircraft: { reg: 'EC-MXV', model: 'Airbus A320neo', ageYears: 5.1 },
     delayMin: 0, turnaroundMin: 115, minTurnaroundMin: 40, parkedSince: '19:05', estimate: null,
     rotation: [
@@ -54,6 +56,7 @@ export const FIXTURES = {
     code: 'VY1802', status: 'expected', airline: 'Vueling',
     route: { from: { city: 'Barcelona', iata: 'BCN' }, to: { city: 'Sevilla', iata: 'SVQ' } },
     departure: { scheduled: '07:15', revised: null, terminal: 'T1', gate: 'B22' },
+    arrival: { scheduled: '08:45', revised: null, predicted: '08:47', terminal: 'T2' },
     aircraft: { reg: 'EC-NIX', model: 'Airbus A320', ageYears: 6.8 },
     delayMin: 0, turnaroundMin: null, lastFlewAt: 'ayer a las 22:40', estimate: null,
     rotation: [
@@ -66,6 +69,7 @@ export const FIXTURES = {
     code: 'UX1094', status: 'expected', airline: 'Air Europa',
     route: { from: { city: 'Madrid', iata: 'MAD' }, to: { city: 'Mallorca', iata: 'PMI' } },
     departure: { scheduled: '19:40', revised: null, terminal: 'T2', gate: 'D14' },
+    arrival: { scheduled: '20:55', revised: null, predicted: '20:58', terminal: null },
     aircraft: { reg: 'EC-NCJ', model: 'Boeing 737-800', ageYears: 9.4 },
     delayMin: 5, turnaroundMin: 50, minTurnaroundMin: 25, estimate: null,
     rotation: [
@@ -79,6 +83,7 @@ export const FIXTURES = {
     code: 'FR5423', status: 'expected', airline: 'Ryanair',
     route: { from: { city: 'Málaga', iata: 'AGP' }, to: { city: 'Londres', iata: 'STN' } },
     departure: { scheduled: '18:20', revised: null, terminal: 'T3', gate: null },
+    arrival: { scheduled: '21:20', revised: null, predicted: '21:38', terminal: null },
     aircraft: { reg: 'EI-DYG', model: 'Boeing 737-800', ageYears: 14.6 },
     delayMin: 22, turnaroundMin: 30, minTurnaroundMin: 25, tippingPoint: '17:50',
     estimate: { from: '18:25', to: '18:50' },
@@ -93,6 +98,7 @@ export const FIXTURES = {
     code: 'VY6501', status: 'canceled', airline: 'Vueling',
     route: { from: { city: 'Barcelona', iata: 'BCN' }, to: { city: 'París', iata: 'ORY' } },
     departure: { scheduled: '16:45', revised: null, terminal: 'T1', gate: null },
+    arrival: { scheduled: '18:35', revised: null, predicted: null, terminal: null },
     aircraft: null, delayMin: 0, turnaroundMin: null, distanceKm: 830, estimate: null, rotation: [],
   },
 
@@ -100,6 +106,7 @@ export const FIXTURES = {
     code: 'TO3456', status: 'canceledUncertain', airline: 'Transavia',
     route: { from: { city: 'Sevilla', iata: 'SVQ' }, to: { city: 'Ámsterdam', iata: 'AMS' } },
     departure: { scheduled: '13:05', revised: null, terminal: null, gate: null },
+    arrival: { scheduled: '16:15', revised: null, predicted: null, terminal: null },
     aircraft: null, delayMin: 0, turnaroundMin: null, lastCheckedMin: 2, estimate: null, rotation: [],
   },
 
@@ -107,6 +114,7 @@ export const FIXTURES = {
     code: 'IB0512', status: 'diverted', airline: 'Iberia',
     route: { from: { city: 'Bilbao', iata: 'BIO' }, to: { city: 'Madrid', iata: 'MAD' } },
     departure: { scheduled: '20:10', revised: '22:30', terminal: 'T4', gate: null },
+    arrival: { scheduled: '21:20', revised: '23:40', predicted: '23:55', terminal: 'T4' },
     aircraft: { reg: 'EC-MER', model: 'Airbus A320', ageYears: 11.2 },
     delayMin: 140, turnaroundMin: null, extraKm: 320, estimate: null,
     rotation: [
@@ -121,6 +129,7 @@ export const FIXTURES = {
     code: 'FR9876', status: 'unknown', airline: 'Ryanair',
     route: { from: { city: 'Alicante', iata: 'ALC' }, to: { city: 'Dublín', iata: 'DUB' } },
     departure: { scheduled: '11:25', revised: null, terminal: null, gate: null },
+    arrival: { scheduled: '14:30', revised: null, predicted: '14:38', terminal: 'T2' },
     aircraft: null, delayMin: 0, turnaroundMin: null, knownBy: '08:30', estimate: null, rotation: [],
     // Cómo se ha portado este número de vuelo los últimos 7 días. Es lo que
     // podemos contar cuando todavía no hay avión asignado, y sirve igual el

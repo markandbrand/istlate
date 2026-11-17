@@ -16,3 +16,4 @@ probe-*.json
 # La key del proveedor y la caché del servidor PHP
 php/api/config.php
 php/.cache/
+dist-demo/

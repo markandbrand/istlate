@@ -24,6 +24,7 @@ export const FIXTURES = {
     code: 'AA1732', status: 'delayed', airline: 'American',
     route: { from: { city: 'Austin', iata: 'AUS' }, to: { city: 'Chicago', iata: 'ORD' } },
     departure: { scheduled: '20:30', revised: '21:00', terminal: 'C', gate: null },
+    arrival: { scheduled: '22:55', revised: '23:20', predicted: '23:35', terminal: '3' },
     aircraft: { reg: 'N823AA', model: 'Boeing 737 MAX 8', ageYears: 3.2 },
     delayMin: 36, turnaroundMin: 25, estimate: { from: '20:55', to: '21:15' },
     rotation: [
@@ -38,6 +39,7 @@ export const FIXTURES = {
     code: 'DL1200', status: 'expected', airline: 'Delta',
     route: { from: { city: 'Atlanta', iata: 'ATL' }, to: { city: 'New York', iata: 'LGA' } },
     departure: { scheduled: '21:00', revised: null, terminal: 'B', gate: 'B14' },
+    arrival: { scheduled: '22:20', revised: null, predicted: '22:25', terminal: 'B' },
     aircraft: { reg: 'N351DN', model: 'Airbus A321neo', ageYears: 5.1 },
     delayMin: 0, turnaroundMin: 115, minTurnaroundMin: 40, parkedSince: '19:05', estimate: null,
     rotation: [
@@ -51,6 +53,7 @@ export const FIXTURES = {
     code: 'WN482', status: 'expected', airline: 'Southwest',
     route: { from: { city: 'Denver', iata: 'DEN' }, to: { city: 'Phoenix', iata: 'PHX' } },
     departure: { scheduled: '07:15', revised: null, terminal: 'C', gate: 'C38' },
+    arrival: { scheduled: '08:45', revised: null, predicted: '08:47', terminal: '4' },
     aircraft: { reg: 'N7825A', model: 'Boeing 737-800', ageYears: 6.8 },
     delayMin: 0, turnaroundMin: null, lastFlewAt: 'yesterday at 10:40 PM', estimate: null,
     rotation: [
@@ -63,6 +66,7 @@ export const FIXTURES = {
     code: 'UA694', status: 'expected', airline: 'United',
     route: { from: { city: 'Chicago', iata: 'ORD' }, to: { city: 'Denver', iata: 'DEN' } },
     departure: { scheduled: '19:40', revised: null, terminal: '1', gate: 'B6' },
+    arrival: { scheduled: '20:55', revised: null, predicted: '20:58', terminal: null },
     aircraft: { reg: 'N26210', model: 'Boeing 737-900ER', ageYears: 9.4 },
     delayMin: 5, turnaroundMin: 50, minTurnaroundMin: 25, estimate: null,
     rotation: [
@@ -76,6 +80,7 @@ export const FIXTURES = {
     code: 'NK1145', status: 'expected', airline: 'Spirit',
     route: { from: { city: 'Fort Lauderdale', iata: 'FLL' }, to: { city: 'Newark', iata: 'EWR' } },
     departure: { scheduled: '18:20', revised: null, terminal: '4', gate: null },
+    arrival: { scheduled: '21:20', revised: null, predicted: '21:38', terminal: null },
     aircraft: { reg: 'N905NK', model: 'Airbus A320', ageYears: 14.6 },
     delayMin: 22, turnaroundMin: 30, minTurnaroundMin: 25, tippingPoint: '17:50',
     estimate: { from: '18:25', to: '18:50' },
@@ -90,6 +95,7 @@ export const FIXTURES = {
     code: 'AA4501', status: 'canceled', airline: 'American',
     route: { from: { city: 'Charlotte', iata: 'CLT' }, to: { city: 'Boston', iata: 'BOS' } },
     departure: { scheduled: '16:45', revised: null, terminal: 'E', gate: null },
+    arrival: { scheduled: '18:35', revised: null, predicted: null, terminal: null },
     aircraft: null, delayMin: 0, turnaroundMin: null, distanceKm: 1120, estimate: null, rotation: [],
   },
 
@@ -97,6 +103,7 @@ export const FIXTURES = {
     code: 'F91580', status: 'canceledUncertain', airline: 'Frontier',
     route: { from: { city: 'Las Vegas', iata: 'LAS' }, to: { city: 'Cleveland', iata: 'CLE' } },
     departure: { scheduled: '13:05', revised: null, terminal: null, gate: null },
+    arrival: { scheduled: '16:15', revised: null, predicted: null, terminal: null },
     aircraft: null, delayMin: 0, turnaroundMin: null, lastCheckedMin: 2, estimate: null, rotation: [],
   },
 
@@ -104,6 +111,7 @@ export const FIXTURES = {
     code: 'AS512', status: 'diverted', airline: 'Alaska',
     route: { from: { city: 'Boise', iata: 'BOI' }, to: { city: 'Seattle', iata: 'SEA' } },
     departure: { scheduled: '20:10', revised: '22:30', terminal: 'N', gate: null },
+    arrival: { scheduled: '21:20', revised: '23:40', predicted: '23:55', terminal: 'S' },
     aircraft: { reg: 'N624AS', model: 'Boeing 737-900', ageYears: 11.2 },
     delayMin: 140, turnaroundMin: null, extraKm: 515, estimate: null,
     rotation: [
@@ -118,6 +126,7 @@ export const FIXTURES = {
     code: 'UA2201', status: 'unknown', airline: 'United',
     route: { from: { city: 'Newark', iata: 'EWR' }, to: { city: 'San Francisco', iata: 'SFO' } },
     departure: { scheduled: '11:25', revised: null, terminal: 'C', gate: null },
+    arrival: { scheduled: '14:30', revised: null, predicted: '14:38', terminal: '2' },
     aircraft: null, delayMin: 0, turnaroundMin: null, knownBy: '08:30', estimate: null, rotation: [],
     // How this flight number has behaved over the last 7 days. It is what we
     // can tell you while there is no aircraft assigned yet, and it works just
