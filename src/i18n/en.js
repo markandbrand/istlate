@@ -121,6 +121,36 @@ export default {
     years: (n) => `${n.toLocaleString('en-US')} yrs`,
   },
 
+  /**
+   * Pick-up mode. The feature that sets us apart from flight apps: they talk
+   * to the passenger, this talks to whoever is waiting for them.
+   */
+  pickup: {
+    cta: "I'm picking someone up",
+    title: 'When should I leave?',
+    blurb: 'Two questions and we\'ll tell you exactly when to get in the car.',
+    travelLabel: 'How long does it take you to reach the airport?',
+    travelUnit: 'minutes',
+    travelHelp: 'A rough guess is fine. Your door to the arrivals door.',
+    bagsLabel: 'Any checked bags?',
+    bagsYes: 'Yes, checked',
+    bagsNo: 'Carry-on only',
+    submit: 'Tell me when',
+    again: 'Change the details',
+    answer: (hora) => `Leave at ${f.time(hora)}`,
+    answerNow: 'Leave right now',
+    answerLate: (min) => `You're running late: you should have left ${f.plural(min, 'minute', 'minutes')} ago`,
+    explain: (x) =>
+      `Their plane lands around ${f.time(x.aterriza)}. Between taxiing, walking${x.conMaleta ? ' and baggage claim' : ''}, they'll come through arrivals around ${f.time(x.salePorLlegadas)}. And you're ${f.plural(x.trayectoMin, 'minute', 'minutes')} away.`,
+    gap: (min, prometida, prevista) =>
+      `👀 Heads up: the airline says ${f.time(prometida)}, but the flight data points to ${f.time(prevista)}. That's ${f.plural(min, 'minute', 'minutes')} you'd have spent standing in arrivals.`,
+    margin: (min) => `You have ${f.duration(min)} before you need to go.`,
+    terminalLabel: 'Time inside the terminal',
+    estimateNote:
+      'Airport timings are deliberately cautious: better you wait five minutes than the person landing does.',
+    unavailable: "We don't have an arrival time for this flight yet, so we can't work it out.",
+  },
+
   tag: {
     tookOff: (t, delay) => `Took off · ${f.time(t)}${delay ? ` (+${delay} min)` : ''}`,
     landed: (t) => `🛬 Landed · ${f.time(t)}`,
@@ -368,7 +398,7 @@ export default {
         { k: 'Lands around', v: f.time(fl.estimate.from) },
         { k: 'Out the doors by', v: f.time(x.gateOutAt), accent: true },
       ],
-      note: "Landing isn't getting out. There's taxi time, deplaning, and the hike through the terminal. Add 25 minutes if they checked a bag.",
+      note: `Landing isn't getting out. There's taxi time, deplaning, and the hike through the terminal. Add ${f.plural(x.bagsMin, 'minute', 'minutes')} if they checked a bag. Picking them up? We'll tell you when to leave, just below.`,
     }),
   },
 }

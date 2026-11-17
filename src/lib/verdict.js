@@ -9,6 +9,7 @@
  * gravedad. Se bromea cuando todo va bien, se es plano cuando va mal, y se es
  * útil de verdad cuando hay una cancelación.
  */
+import { esperaEnTerminal, tiemposDe } from '../data/airports.js'
 
 /** Minutos por debajo de los cuales un retraso es ruido y no merece alarmar. */
 const RUIDO_MIN = 15
@@ -20,8 +21,9 @@ const ESCALA_JUSTA_MIN = 35
 const ANTELACION_MIN = 75
 /** Cuánto antes de salir de casa conviene volver a mirar un vuelo en riesgo. */
 const REVISION_MIN = 150
-/** Del aterrizaje a cruzar la puerta de llegadas, con y sin maleta facturada. */
-const PUERTA_MIN = { sinMaleta: 20, conMaleta: 45 }
+// Del aterrizaje a cruzar la puerta de llegadas: lo decide la tabla por
+// aeropuerto de src/data/airports.js, compartida con el modo recoger para que
+// las dos partes de la pantalla no digan horas distintas.
 
 export const TONE_BY_KEY = {
   parked: 'green',
@@ -162,13 +164,16 @@ function analyse(flight) {
   }
 
   if (['departed', 'enRoute', 'approaching', 'arrived'].includes(status)) {
-    const espera = flight.hasCheckedBags ? PUERTA_MIN.conMaleta : PUERTA_MIN.sinMaleta
+    const espera = esperaEnTerminal(flight.route?.to?.iata, flight.hasCheckedBags)
     return {
       key: 'gone',
       x: {
         ...base,
         landed: status === 'arrived',
         gateOutAt: plusMinutes(flight.estimate?.from, espera),
+        // Los minutos que añade la maleta en ESE aeropuerto, para que el
+        // texto no lleve un número a mano que se desalinee con la tabla.
+        bagsMin: tiemposDe(flight.route?.to?.iata).maletaMin,
         progressPct: status === 'arrived' ? 100 : flightProgress(flight),
       },
     }

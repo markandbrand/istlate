@@ -125,6 +125,37 @@ export default {
     years: (n) => `${n.toLocaleString('es-ES')} años`,
   },
 
+  /**
+   * Modo "Voy a recoger". La función que nos separa de las apps de vuelos:
+   * ellas hablan con el pasajero, esto habla con quien le espera.
+   */
+  pickup: {
+    cta: 'Voy a recoger a alguien',
+    title: '¿A qué hora salgo de casa?',
+    blurb: 'Dos preguntas y te decimos la hora exacta a la que coger el coche.',
+    travelLabel: '¿Cuánto tardas en llegar al aeropuerto?',
+    travelUnit: 'minutos',
+    travelHelp: 'A ojo vale. Puerta de tu casa a puerta de llegadas.',
+    bagsLabel: '¿Lleva maleta facturada?',
+    bagsYes: 'Sí, factura',
+    bagsNo: 'Solo de mano',
+    submit: 'Dime la hora',
+    again: 'Cambiar los datos',
+    answer: (hora) => `Sal de casa a las ${f.time(hora)}`,
+    answerNow: 'Sal ya, ahora mismo',
+    answerLate: (min) => `Vas tarde: tendrías que haber salido hace ${f.plural(min, 'minuto', 'minutos')}`,
+    explain: (x) =>
+      `Su avión aterriza sobre las ${f.time(x.aterriza)}. Entre rodaje, pasillos${x.conMaleta ? ' y cinta de maletas' : ''}, saldrá por llegadas hacia las ${f.time(x.salePorLlegadas)}. Y desde tu casa son ${f.plural(x.trayectoMin, 'minuto', 'minutos')}.`,
+    gap: (min, prometida, prevista) =>
+      `👀 Ojo: la aerolínea dice que aterriza a las ${f.time(prometida)}, pero los datos de vuelo apuntan a las ${f.time(prevista)}. Son ${f.plural(min, 'minuto', 'minutos')} que te habrías comido de pie en llegadas.`,
+    // En horas y minutos: "te quedan 488 minutos" no lo dice nadie.
+    margin: (min) => `Te quedan ${f.duration(min)} antes de salir.`,
+    terminalLabel: 'Espera en la terminal',
+    estimateNote:
+      'Los tiempos de aeropuerto son estimaciones prudentes: prefiere que esperes tú cinco minutos a que espere quien llega.',
+    unavailable: 'De este vuelo todavía no tenemos hora de llegada, así que no podemos calcularlo.',
+  },
+
   /** Etiquetas de los tramos de la rotación. */
   tag: {
     tookOff: (t, delay) => `Despegó · ${f.time(t)}${delay ? ` (+${delay} min)` : ''}`,
@@ -371,7 +402,7 @@ export default {
         { k: 'Aterriza sobre las', v: f.time(fl.estimate.from) },
         { k: 'Sale por la puerta a las', v: f.time(x.gateOutAt), accent: true },
       ],
-      note: 'Aterrizar no es salir: hay que rodar, desembarcar y cruzar la terminal. Suma 25 minutos más si lleva maleta facturada.',
+      note: `Aterrizar no es salir: hay que rodar, desembarcar y cruzar la terminal. Suma ${f.plural(x.bagsMin, 'minuto', 'minutos')} más si lleva maleta facturada. ¿Vienes a recogerle? Ahí abajo te decimos a qué hora salir de casa.`,
     }),
   },
 }
