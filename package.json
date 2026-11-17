@@ -3,12 +3,13 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "IsItLate? \u2014 \u00bfVa a llegar tarde tu avi\u00f3n? (demo con datos de ejemplo)",
+  "description": "IsItLate? — ¿Va a llegar tarde tu avión? (demo con datos de ejemplo)",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "probe": "node scripts/probe.mjs"
+    "probe": "node scripts/probe.mjs",
+    "check": "node scripts/check.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",

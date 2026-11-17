@@ -1,0 +1,38 @@
+# Control automático en cada cambio.
+#
+# Se ejecuta en GitHub, gratis, cada vez que se sube algo. Si falla, se ve una
+# cruz roja en el repositorio y queda claro qué se ha roto, sin que haya que
+# mirar la web para enterarse.
+#
+# No despliega nada: de publicar se encarga Cloudflare Pages por su cuenta
+# cuando detecta un cambio en `main`. Esto es la red de seguridad de antes.
+
+name: Comprobar
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # La versión la manda .nvmrc, para que aquí y en Cloudflare se
+          # construya con la misma.
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Comprobar la lógica
+        run: npm run check
+
+      - name: Comprobar que la web compila
+        run: npm run build
