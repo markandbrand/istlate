@@ -9,6 +9,39 @@
       name="description"
       content="No leas letra pequeña de aerolínea. Te contamos, como lo haría un colega, lo que de verdad va a pasar con tu vuelo."
     />
+
+    <!--
+      Vista previa al compartir (WhatsApp, Telegram, X, LinkedIn...).
+
+      %SITE_URL% lo sustituye vite.config.js al construir: los rastreadores
+      exigen la dirección completa de la imagen, no una relativa. En Cloudflare
+      se rellena sola con la URL del despliegue; cuando haya dominio propio, se
+      pone SITE_URL a mano y manda esa.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="IsItLate?" />
+    <meta property="og:title" content="IsItLate? — ¿Cómo va tu vuelo?" />
+    <meta
+      property="og:description"
+      content="Pon tu número de vuelo y te decimos, en cristiano, si vas a salir a tu hora, cuándo salir de casa y si te deben dinero."
+    />
+    <meta property="og:image" content="%SITE_URL%/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="IsItLate? — ¿Cómo va tu vuelo?" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:locale:alternate" content="en_US" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="IsItLate? — ¿Cómo va tu vuelo?" />
+    <meta
+      name="twitter:description"
+      content="Pon tu número de vuelo y te decimos, en cristiano, si vas a salir a tu hora, cuándo salir de casa y si te deben dinero."
+    />
+    <meta name="twitter:image" content="%SITE_URL%/og.png" />
+
+    <meta name="theme-color" content="#cfe9fb" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

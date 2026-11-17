@@ -27,9 +27,27 @@ function apiDev(env) {
   }
 }
 
+/**
+ * Rellena %SITE_URL% en index.html con la dirección pública del sitio.
+ *
+ * Los rastreadores de WhatsApp y compañía no ejecutan JavaScript y exigen la
+ * URL completa de la imagen de vista previa, así que no vale una ruta
+ * relativa. El orden de preferencia:
+ *   1. SITE_URL, que es lo que se pone a mano cuando haya dominio propio;
+ *   2. CF_PAGES_URL, que Cloudflare define sola en cada despliegue;
+ *   3. nada, y entonces queda relativa, que es lo correcto en local.
+ */
+function siteUrl(env) {
+  const url = (env.SITE_URL || env.CF_PAGES_URL || '').replace(/\/$/, '')
+  return {
+    name: 'isitlate-site-url',
+    transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', url),
+  }
+}
+
 export default defineConfig(({ mode }) => {
   // El tercer argumento vacío carga TODAS las variables, no solo las VITE_*,
   // que es justo lo que queremos: la key nunca lleva ese prefijo.
   const env = loadEnv(mode, process.cwd(), '')
-  return { plugins: [react(), tailwindcss(), apiDev(env)] }
+  return { plugins: [react(), tailwindcss(), apiDev(env), siteUrl(env)] }
 })
