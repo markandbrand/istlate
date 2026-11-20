@@ -1,5 +1,5 @@
 import { FORMATTERS } from './format.js'
-import { LEGAL } from '../data/legal.js'
+import { LEGAL, LEGAL_COMPLETO } from '../data/legal.js'
 
 const f = FORMATTERS.en
 
@@ -195,12 +195,21 @@ export default {
           ? `Gate ${fl.departure.gate}. Don't dawdle.`
           : null,
     }),
-    unassigned: () => ({
+    // Two different situations, and the card shows the aircraft model right
+    // below: saying "no aircraft assigned" next to "Airbus A330" contradicts
+    // itself. Knowing the model is not knowing which tail number.
+    unassigned: (fl) => ({
       badge: 'Not known yet',
       emoji: '🕐',
-      title: "Nobody knows which plane you're getting yet",
-      text: "The airline hasn't assigned an aircraft to this flight yet, so we can't trace its day. You're not leaving empty-handed though: below is how this flight normally behaves.",
-      advice: "Leave your email and we'll ping you the second there's a plane on it.",
+      title: fl.aircraft?.model
+        ? "We know the aircraft type, just not which one"
+        : "Nobody knows which plane you're getting yet",
+      text: fl.aircraft?.model
+        ? `You'll be flying an ${fl.aircraft.model}, but the airline hasn't published the tail number yet — and that's what we'd need to trace that specific plane and see where it is right now. What we can tell you is how this flight usually behaves.`
+        : "The airline hasn't assigned an aircraft to this flight yet, so we can't trace its day. You're not leaving empty-handed though: below is how this flight normally behaves.",
+      advice: LEGAL_COMPLETO
+        ? "Leave your email and we'll ping you the second there's a plane on it."
+        : 'Check back closer to departure: that\'s when the gate, the terminal and any real delays show up.',
     }),
 
     canceled: (fl) => ({

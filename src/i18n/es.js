@@ -1,5 +1,5 @@
 import { FORMATTERS } from './format.js'
-import { LEGAL } from '../data/legal.js'
+import { LEGAL, LEGAL_COMPLETO } from '../data/legal.js'
 
 const f = FORMATTERS.es
 
@@ -201,12 +201,24 @@ export default {
           ? `Puerta ${fl.departure.gate}. No te entretengas.`
           : null,
     }),
-    unassigned: () => ({
+    // Hay dos situaciones distintas y conviene no mezclarlas, porque la
+    // tarjeta enseña el modelo de avión justo debajo: decir "no han asignado
+    // avión" mientras al lado pone "Airbus A330" es contradecirse solo.
+    //   · sabemos el MODELO pero no la matrícula → sí hay avión, no sabemos cuál;
+    //   · no sabemos ni el modelo → ahí sí, no hay nada.
+    unassigned: (fl) => ({
       badge: 'Todavía no se sabe',
       emoji: '🕐',
-      title: 'Aún no sabemos qué avión te toca',
-      text: 'La aerolínea todavía no ha asignado avión a este vuelo, así que aún no podemos seguirle la pista a la rotación. Pero no te vas de vacío: abajo te contamos cómo se porta este vuelo habitualmente.',
-      advice: 'Te avisamos en cuanto se sepa qué avión te toca, si nos dejas tu email.',
+      title: fl.aircraft?.model
+        ? 'Sabemos el modelo, pero no qué avión en concreto'
+        : 'Aún no sabemos qué avión te toca',
+      text: fl.aircraft?.model
+        ? `Vas a volar en un ${fl.aircraft.model}, pero la aerolínea todavía no ha publicado la matrícula, que es lo que haría falta para seguirle la pista a ese avión y ver dónde anda ahora. Lo que sí te podemos contar es cómo se porta este vuelo habitualmente.`
+        : 'La aerolínea todavía no ha asignado avión a este vuelo, así que aún no podemos seguirle la pista a la rotación. Pero no te vas de vacío: abajo te contamos cómo se porta este vuelo habitualmente.',
+      // Prometer el aviso por email solo cuando el formulario está en pantalla.
+      advice: LEGAL_COMPLETO
+        ? 'Te avisamos en cuanto se sepa qué avión te toca, si nos dejas tu email.'
+        : 'Vuelve a mirarlo cerca de la salida: es cuando aparecen la puerta, la terminal y los retrasos de verdad.',
     }),
 
     canceled: (fl) => ({
