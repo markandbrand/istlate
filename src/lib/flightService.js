@@ -33,6 +33,20 @@ const DIAS_HISTORIAL = 7
 const RATE_LIMIT = { max: 20, windowMs: 60_000 } // 20 búsquedas por IP y minuto
 
 /**
+ * Ritmo al que el proveedor nos deja llamar.
+ *
+ * El plan Basic de AeroDataBox admite UNA petición por segundo, y una
+ * búsqueda nuestra encadena hasta tres (vuelo, rotación e historial). Al
+ * dispararlas seguidas, el proveedor devolvía 429 a la segunda y la búsqueda
+ * fallaba entera, de forma aparentemente aleatoria: unas veces iba y otras
+ * no, según cuántas llamadas necesitara ese vuelo.
+ *
+ * Se espera un poco más del segundo exacto para dar margen al reloj.
+ */
+const MIN_ENTRE_LLAMADAS_MS = 1150
+const pausa = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+/**
  * Caché y contadores en memoria del proceso.
  *
  * LIMITACIÓN CONOCIDA: en serverless esto vive por instancia y se pierde en
@@ -126,7 +140,7 @@ class ProviderError extends Error {
   }
 }
 
-async function callProvider(path, env) {
+async function callProvider(path, env, reintentar = true) {
   const host = env.AERODATABOX_HOST || 'aerodatabox.p.rapidapi.com'
   const res = await fetch(`https://${host}${path}`, {
     headers: {
@@ -136,6 +150,13 @@ async function callProvider(path, env) {
     },
   })
   if (res.status === 404) return []
+  // Un 429 puede venir de otra persona buscando a la vez, no solo de
+  // nosotros: espaciar nuestras llamadas no basta cuando hay concurrencia.
+  // Un único reintento resuelve la colisión sin convertirse en un bucle.
+  if (res.status === 429 && reintentar) {
+    await pausa(MIN_ENTRE_LLAMADAS_MS)
+    return callProvider(path, env, false)
+  }
   if (!res.ok) throw new ProviderError(res.status, path)
   const data = await res.json()
   return Array.isArray(data) ? data : (data.flights ?? [data])
@@ -192,9 +213,11 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
     // al mismo avión (enum FlightSearchByEnum: number, reg, callSign, icao24).
     const { reg, modeS } = flight.aircraft ?? {}
     const buscarPor = reg ? `reg/${encodeURIComponent(reg)}` : modeS ? `icao24/${encodeURIComponent(modeS)}` : null
-    const aircraftFlights = buscarPor
-      ? await callProvider(`/flights/${buscarPor}/${today()}?${OPCIONES}`, env)
-      : []
+    let aircraftFlights = []
+    if (buscarPor) {
+      await pausa(MIN_ENTRE_LLAMADAS_MS)
+      aircraftFlights = await callProvider(`/flights/${buscarPor}/${today()}?${OPCIONES}`, env)
+    }
 
     // 3) El historial del número de vuelo: cómo se porta habitualmente.
     //
@@ -205,6 +228,7 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
     const historyKey = `hist:${code}`
     let rangeFlights = cacheGet(historyKey)
     if (!rangeFlights) {
+      await pausa(MIN_ENTRE_LLAMADAS_MS)
       rangeFlights = await callProvider(
         `/flights/number/${code}/${daysAgo(DIAS_HISTORIAL)}/${daysAgo(1)}?${OPCIONES}`,
         env,
