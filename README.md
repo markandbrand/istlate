@@ -329,13 +329,30 @@ Tres mediciones sobre vuelos reales el 22/09/2026:
 | VY 3965 VLC→SVQ | **en el aire** | `EnRoute` | ❌ solo el modelo |
 | IB 325 MAD→JFK | ya aterrizado | `Arrived` | ✅ `modeS` |
 
-Ni siquiera con el avión volando aparece el identificador. El único vuelo que lo trajo era
-un largo radio ya completado, consultado como histórico.
+**Conclusión: con AeroDataBox no se puede saber qué avión operará un vuelo ANTES de que
+salga.** La rotación previa —seguirle la pista al avión que viene a por ti mientras aún
+estás en casa— **no es alcanzable con este proveedor**. Haría falta uno con datos de
+asignación de la aerolínea (Cirium y similares), que es precio de empresa.
 
-**Conclusión: con AeroDataBox en el plan Basic no se puede saber qué avión operará un vuelo,
-ni antes de salir ni con el avión en el aire.** La rotación previa —seguirle la pista al
-avión que viene a por ti— **no es alcanzable con este proveedor**. Haría falta uno con datos
-de asignación de la aerolínea (Cirium y similares), que es precio de empresa.
+#### Corrección del 20/11/2026: en el aire SÍ aparece
+
+La versión anterior de esta conclusión decía "ni antes de salir ni con el avión en el aire",
+apoyada en un único Vueling en ruta que no traía identificador. **Era falso**, y lo destapó
+una búsqueda real en producción:
+
+| Vuelo | Estado | Identificador | Rotación |
+|---|---|---|---|
+| VY 3965 BCN→SVQ (sept) | `EnRoute` | ❌ ninguno | — |
+| FR 1193 TLS→SVQ (20/11) | `EnRoute` | ✅ `EI-HMZ` + `modeS` | ✅ 4 tramos del día |
+
+Con una observación a cada lado no hay regla: depende de la aerolínea, o del momento. Lo
+honesto es decir que **una vez el avión está en el aire, el identificador puede aparecer, y
+cuando aparece la rotación se reconstruye entera**.
+
+Y eso importa más de lo que parece, porque encaja justo con la función estrella: **quien va a
+recoger a alguien consulta cuando el avión ya está volando**. Es decir, la rotación está
+disponible precisamente en el caso de uso que más la luce. No es una función muerta: es una
+función que no sirve antes de salir y sí sirve para quien espera.
 
 Eso tumba el mecanismo que habíamos imaginado… y a la vez destapa algo mejor.
 
