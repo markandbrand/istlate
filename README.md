@@ -13,8 +13,14 @@ El subtítulo prometía contar "dónde anda de verdad el avión que viene a por 
 mediciones contra el proveedor demostraron que eso no se puede saber antes del despegue, así
 que pasó a prometer lo que sí se cumple.
 
-> **Modo demo.** Todavía no hay ninguna API de vuelos conectada: cualquier número de vuelo
-> devuelve la misma rotación de ejemplo, rotulada con el código que escribas.
+## 📍 Dónde está publicado
+
+**https://istlate.pages.dev** — Cloudflare Pages, desplegado automáticamente desde `main`.
+Cada cambio que entra en esa rama se construye y se publica solo, en un par de minutos.
+
+La web se cae a datos de ejemplo por su cuenta mientras no haya clave de proveedor
+configurada, y lo rotula bien visible, de modo que publicar sin key no enseña vuelos
+inventados como si fueran reales.
 
 ## 🎨 Sobre la paleta
 
