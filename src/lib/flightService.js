@@ -111,6 +111,21 @@ const OPCIONES = new URLSearchParams({
  * donde el segmento tras /flights/ admite number, reg, callSign o icao24
  * (enum FlightSearchByEnum de su esquema).
  */
+/**
+ * Error del proveedor que recuerda QUÉ respondió.
+ *
+ * Sin el código, "no hemos podido consultar el vuelo" tapa por igual una
+ * cuota agotada, un permiso que falta y una petición mal formada, y desde
+ * fuera no hay manera de distinguirlas.
+ */
+class ProviderError extends Error {
+  constructor(status, path) {
+    super(`Proveedor respondió ${status} en ${path}`)
+    this.status = status
+    this.path = path
+  }
+}
+
 async function callProvider(path, env) {
   const host = env.AERODATABOX_HOST || 'aerodatabox.p.rapidapi.com'
   const res = await fetch(`https://${host}${path}`, {
@@ -121,7 +136,7 @@ async function callProvider(path, env) {
     },
   })
   if (res.status === 404) return []
-  if (!res.ok) throw new Error(`Proveedor respondió ${res.status}`)
+  if (!res.ok) throw new ProviderError(res.status, path)
   const data = await res.json()
   return Array.isArray(data) ? data : (data.flights ?? [data])
 }
@@ -206,9 +221,12 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
     return json(result, 200, { 'x-isitlate-cache': 'miss' })
   } catch (err) {
     console.error('[isitlate] fallo consultando el proveedor:', err)
+    // El mensaje al usuario no cambia; el código del proveedor viaja en una
+    // cabecera para poder diagnosticar desde fuera sin enseñar tripas.
     return json(
       { error: 'provider_error', message: 'No hemos podido consultar el vuelo ahora mismo. Inténtalo en un minuto.' },
       502,
+      { 'x-isitlate-provider-status': String(err?.status ?? 'desconocido') },
     )
   }
 }
