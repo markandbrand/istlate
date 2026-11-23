@@ -66,3 +66,48 @@ export function esperaEnTerminal(iata, conMaleta) {
   const t = tiemposDe(iata)
   return t.rodajeMin + t.salaMin + (conMaleta ? t.maletaMin : 0)
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LADO DE LA SALIDA: cuánto hay que llegar antes
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Minutos de antelación con los que conviene plantarse en el aeropuerto.
+ *
+ * Mismo aviso que arriba: **no están medidos**, son estimaciones prudentes
+ * para que el producto pueda dar una hora desde el primer día. Se pecan de
+ * generosas a propósito, porque equivocarse por abajo aquí no es esperar un
+ * rato: es perder el vuelo.
+ *
+ *   · control  — de entrar en la terminal a estar en la puerta de embarque,
+ *                con la tarjeta ya sacada y sin maleta que facturar;
+ *   · facturar — lo que añade pasar por el mostrador, que además cierra
+ *                bastante antes de la hora de salida.
+ *
+ * Lo que NO contemplan todavía: el control de pasaportes de los vuelos fuera
+ * del espacio Schengen, que añade un buen rato. Hace falta saber el país de
+ * destino, y hasta ahora no lo guardábamos.
+ */
+export const SALIDA_POR_DEFECTO = { controlMin: 60, facturarMin: 30 }
+
+/** Aeropuertos donde el tamaño o las colas cambian el cálculo. Clave IATA. */
+export const SALIDAS = {
+  MAD: { controlMin: 85, facturarMin: 35 }, // Barajas T4 y su satélite
+  BCN: { controlMin: 75, facturarMin: 35 },
+  LHR: { controlMin: 90, facturarMin: 40 },
+  CDG: { controlMin: 90, facturarMin: 40 },
+  // Aeropuertos pequeños: del aparcamiento a la puerta en un paseo
+  VLC: { controlMin: 50, facturarMin: 25 },
+  SVQ: { controlMin: 50, facturarMin: 25 },
+  BIO: { controlMin: 50, facturarMin: 25 },
+  AGP: { controlMin: 60, facturarMin: 30 },
+  PMI: { controlMin: 60, facturarMin: 30 },
+  ALC: { controlMin: 55, facturarMin: 25 },
+}
+
+/** Minutos antes de la salida a los que conviene estar en el aeropuerto. */
+export function antelacionEn(iata, conMaleta) {
+  const t = SALIDAS[iata] ?? SALIDA_POR_DEFECTO
+  return t.controlMin + (conMaleta ? t.facturarMin : 0)
+}

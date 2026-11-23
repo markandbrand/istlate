@@ -6,7 +6,7 @@ import FlightResult from './components/FlightResult.jsx'
 import { LoadingCard, ErrorCard } from './components/StatusCard.jsx'
 import ScenarioSwitcher from './components/ScenarioSwitcher.jsx'
 import Waitlist from './components/Waitlist.jsx'
-import PickupMode from './components/PickupMode.jsx'
+import PlanDelDia from './components/PlanDelDia.jsx'
 import SiteFooter from './components/SiteFooter.jsx'
 import { lookupFlight } from './data/flightApi.js'
 import { useI18n } from './i18n/index.jsx'
@@ -152,10 +152,10 @@ export default function App() {
               {loading && <LoadingCard />}
               {error && <ErrorCard message={error} onRetry={() => search()} />}
               {flight && !loading && !error && <FlightResult flight={flight} />}
-              {/* El modo recoger va fuera de la tarjeta del vuelo, como una
-                  pregunta aparte: quien busca su propio vuelo lo ignora, y
-                  quien va a buscar a alguien lo ve en cuanto baja la vista. */}
-              {flight && !loading && !error && <PickupMode flight={flight} />}
+              {/* Los dos modos van fuera de la tarjeta, como una pregunta
+                  aparte: "¿y tú qué haces hoy?". Quien vuela y quien recoge
+                  necesitan la misma cuenta vista desde lados opuestos. */}
+              {flight && !loading && !error && <PlanDelDia flight={flight} />}
             </div>
 
             {/* La lista de espera solo aparece si la política de privacidad está

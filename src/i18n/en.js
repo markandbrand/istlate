@@ -118,10 +118,43 @@ export default {
     shareButton: 'Share this flight',
     shareCopied: 'Link copied',
     shareText: (code, from, to) => `See how ${code} is doing: ${from} → ${to}`,
+    planTitle: "What's your part in this?",
+    planBlurb: "Two questions and we'll tell you exactly when to leave home.",
+    planFlying: "I'm flying",
+    planPicking: "I'm picking someone up",
+    planBack: '← Back',
     footer: 'IsItLate? — demo on sample data · not wired up to a live flight provider yet',
     footerLive: 'IsItLate? · Flight data by AeroDataBox',
     footerPrivacy: 'Privacy policy',
     years: (n) => `${n.toLocaleString('en-US')} yrs`,
+  },
+
+  /**
+   * "I'm flying" mode. The other side of pick-up mode: same question, seen
+   * from whoever has to catch the plane.
+   */
+  departure: {
+    title: 'When should I leave home?',
+    blurb: 'So you get there in time, without the sprint.',
+    travelLabel: 'How long does it take you to reach the airport?',
+    travelUnit: 'minutes',
+    travelHelp: 'A rough guess is fine. Your door to the terminal door.',
+    bagsLabel: 'Checking a bag?',
+    bagsYes: "Yes, I'm checking",
+    bagsNo: 'Carry-on only',
+    airportLabel: 'At the airport by',
+    submit: 'Tell me when',
+    again: 'Change the details',
+    answer: (hora) => `Leave at ${f.time(hora)}`,
+    answerNow: 'Leave right now',
+    answerLate: (min) => `You're running late: you should have left ${f.plural(min, 'minute', 'minutes')} ago`,
+    margin: (min) => `You have ${f.duration(min)} before you need to go.`,
+    explain: (x) =>
+      `Your flight leaves at ${f.time(x.salida)}. ${x.conMaleta ? 'With a bag to check, best' : 'Best'} to be at the airport by ${f.time(x.enElAeropuerto)}, which is ${f.duration(x.antelacion)} ahead. And you're ${f.plural(x.trayectoMin, 'minute', 'minutes')} away.`,
+    moved: (programada, nueva) =>
+      `👀 Heads up: your flight was at ${f.time(programada)} and the airline moved it to ${f.time(nueva)}. This time already accounts for the delay, so no need to get up early for nothing.`,
+    estimateNote:
+      'Airport timings are deliberately cautious: missing a flight costs far more than twenty minutes at the gate.',
   },
 
   /**

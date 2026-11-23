@@ -1,0 +1,173 @@
+import { useState } from 'react'
+import { useI18n } from '../i18n/index.jsx'
+import { planDeSalida } from '../lib/salida.js'
+
+/** Límites razonables para el trayecto que escribe el usuario. */
+const TRAYECTO = { min: 1, max: 300 }
+
+/**
+ * Modo "Es mi vuelo": a qué hora salir de casa para no perderlo.
+ *
+ * La otra mitad del modo recoger. Todo sale del vuelo que ya está en
+ * pantalla, así que responde al instante y no gasta ni una llamada a la API.
+ */
+export default function DepartureMode({ flight, onVolver }) {
+  const { copy, fmt } = useI18n()
+  const c = copy.departure
+
+  const [trayecto, setTrayecto] = useState('')
+  const [maleta, setMaleta] = useState(null)
+  const [plan, setPlan] = useState(null)
+
+  const minutos = Number(trayecto)
+  const valido =
+    trayecto !== '' &&
+    Number.isFinite(minutos) &&
+    minutos >= TRAYECTO.min &&
+    minutos <= TRAYECTO.max &&
+    maleta !== null
+
+  function calcular() {
+    if (valido) setPlan(planDeSalida(flight, minutos, maleta))
+  }
+
+  // Con respuesta.
+  if (plan) {
+    const tarde = plan.margenMin != null && plan.margenMin < 0
+    const titular = plan.salYa
+      ? tarde
+        ? c.answerLate(Math.abs(plan.margenMin))
+        : c.answerNow
+      : c.answer(plan.salDeCasa)
+
+    return (
+      <div className="mt-4 rounded-card bg-card p-7 shadow-soft">
+        <div
+          className={`rounded-2xl border-2 px-5 py-5 text-center ${
+            plan.salYa
+              ? 'border-alert-line bg-[linear-gradient(135deg,var(--color-alert-dim),#fff)]'
+              : 'border-[#bfe9d6] bg-[linear-gradient(135deg,var(--color-green-dim),#fff)]'
+          }`}
+        >
+          <div className="mb-1.5 text-[11px] tracking-[0.06em] text-ink-dim uppercase">
+            {c.title}
+          </div>
+          <b
+            className={`block font-display text-[clamp(26px,5vw,38px)] leading-[1.15] font-bold ${
+              plan.salYa ? 'text-alert-ink' : 'text-green-ink'
+            }`}
+          >
+            {titular}
+          </b>
+          {!plan.salYa && plan.margenMin != null && (
+            <p className="mt-2 mb-0 text-[13px] font-semibold text-ink-dim">
+              {c.margin(plan.margenMin)}
+            </p>
+          )}
+        </div>
+
+        <p className="mt-5 mb-0 text-[14.5px] leading-[1.6] text-ink-dim">{c.explain(plan)}</p>
+
+        {/* Si la aerolínea ha movido la hora, decirlo: es el motivo de que la
+            respuesta no sea la que esperaba. */}
+        {plan.retrasada && (
+          <p className="mt-4 mb-0 rounded-[14px] border-2 border-amber-line bg-amber-dim px-[18px] py-[14px] text-[13.5px] leading-[1.55] font-semibold text-ink">
+            {c.moved(plan.programada, plan.salida)}
+          </p>
+        )}
+
+        <div className="mt-5 grid grid-cols-1 gap-3 min-[561px]:grid-cols-3">
+          {[
+            { k: c.travelLabel, v: fmt.duration(plan.trayectoMin) },
+            { k: c.bagsLabel, v: plan.conMaleta ? c.bagsYes : c.bagsNo },
+            { k: c.airportLabel, v: fmt.time(plan.enElAeropuerto) },
+          ].map((card) => (
+            <div key={card.k} className="rounded-[14px] border-2 border-line bg-fc px-[18px] py-4">
+              <div className="mb-2 text-[11px] tracking-[0.06em] text-ink-dim uppercase">
+                {card.k}
+              </div>
+              <div className="font-mono text-[17px] font-bold">{card.v}</div>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-4 mb-0 text-[12.5px] leading-[1.55] text-muted">{c.estimateNote}</p>
+
+        <button
+          type="button"
+          onClick={() => setPlan(null)}
+          className="mt-4 cursor-pointer border-none bg-transparent p-0 text-[13px] font-semibold text-blue underline underline-offset-[3px]"
+        >
+          {c.again}
+        </button>
+      </div>
+    )
+  }
+
+  // Las dos preguntas.
+  return (
+    <div className="mt-4 rounded-card bg-card p-7 shadow-soft">
+      <p className="mt-0 mb-1 font-display text-[17px] font-bold text-ink">✈️ {c.title}</p>
+      <p className="mt-0 mb-5 text-[13.5px] text-ink-dim">{c.blurb}</p>
+
+      <label className="mb-1.5 block text-[13.5px] font-semibold text-ink" htmlFor="departureTravel">
+        {c.travelLabel}
+      </label>
+      <div className="flex items-center gap-2.5">
+        <input
+          id="departureTravel"
+          type="number"
+          inputMode="numeric"
+          min={TRAYECTO.min}
+          max={TRAYECTO.max}
+          value={trayecto}
+          onChange={(e) => setTrayecto(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && calcular()}
+          placeholder="45"
+          className="w-[108px] rounded-xl border-2 border-line bg-card px-[14px] py-2.5 font-mono text-[17px] text-ink placeholder:text-muted"
+        />
+        <span className="text-[14px] text-ink-dim">{c.travelUnit}</span>
+      </div>
+      <p className="mt-2 mb-5 text-[12.5px] text-muted">{c.travelHelp}</p>
+
+      <p className="mb-2 text-[13.5px] font-semibold text-ink">{c.bagsLabel}</p>
+      <div className="flex flex-wrap gap-2.5">
+        {[
+          { valor: true, texto: c.bagsYes },
+          { valor: false, texto: c.bagsNo },
+        ].map((opcion) => (
+          <button
+            key={opcion.texto}
+            type="button"
+            onClick={() => setMaleta(opcion.valor)}
+            aria-pressed={maleta === opcion.valor}
+            className={`cursor-pointer rounded-full border-2 px-[18px] py-2.5 text-[13.5px] font-semibold transition-colors duration-150 ${
+              maleta === opcion.valor
+                ? 'border-blue bg-blue text-white'
+                : 'border-line bg-card text-ink-dim hover:border-[#c9e3f7]'
+            }`}
+          >
+            {opcion.texto}
+          </button>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={calcular}
+        disabled={!valido}
+        className="mt-6 w-full cursor-pointer rounded-xl border-none bg-coral px-6 py-3 font-display text-[15px] font-semibold text-white transition-[background-color,transform] duration-150 ease-in-out hover:-translate-y-px hover:bg-coral-hover disabled:cursor-not-allowed disabled:bg-muted disabled:hover:translate-y-0"
+      >
+        {c.submit}
+      </button>
+
+      <button
+        type="button"
+        onClick={onVolver}
+        className="mt-3 w-full cursor-pointer border-none bg-transparent p-0 text-[13px] text-ink-dim underline underline-offset-[3px]"
+      >
+        {copy.ui.planBack}
+      </button>
+    </div>
+  )
+}

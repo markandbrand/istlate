@@ -10,6 +10,8 @@
 import { toInternal, buildEstimate } from '../src/lib/adapter.js'
 import { deriveVerdict } from '../src/lib/verdict.js'
 import { planDeRecogida, sePuedeRecoger } from '../src/lib/pickup.js'
+import { planDeSalida, sePuedeVolar } from '../src/lib/salida.js'
+import { antelacionEn } from '../src/data/airports.js'
 import { elQueSaleHoy, fechaPedida } from '../src/lib/flightService.js'
 import { codigoDeLaRuta, idiomaDeLaRuta, rutaDeVuelo } from '../src/lib/rutas.js'
 import { esperaEnTerminal } from '../src/data/airports.js'
@@ -198,6 +200,38 @@ comprobar('detecta que ya tendría que haber salido', yaTarde.margenMin < 0 && y
 comprobar('la espera en terminal es una sola cuenta',
   esperaEnTerminal('MAD', true) === plan.esperaEnTerminal,
   `${esperaEnTerminal('MAD', true)} vs ${plan.esperaEnTerminal}`)
+
+// ---------------------------------------------------------------------------
+bloque('Modo "Es mi vuelo"')
+
+const miVuelo = (revisada = '18:25') => ({
+  status: 'expected',
+  route: { from: { iata: 'VLC' } },
+  departure: { scheduled: '18:25', revised: revisada },
+})
+
+comprobar('se ofrece en un vuelo que aún no ha salido', sePuedeVolar(miVuelo()))
+comprobar('NO se ofrece si ya despegó', !sePuedeVolar({ ...miVuelo(), status: 'enRoute' }))
+comprobar('NO se ofrece si está cancelado', !sePuedeVolar({ ...miVuelo(), status: 'canceled' }))
+
+const sinMaleta = planDeSalida(miVuelo(), 45, false, '12:00')
+comprobar('sin maleta sale más tarde de casa', sinMaleta.salDeCasa === '16:50', sinMaleta.salDeCasa)
+
+const conMaleta = planDeSalida(miVuelo(), 45, true, '12:00')
+comprobar('facturar maleta adelanta la salida', conMaleta.salDeCasa === '16:25', conMaleta.salDeCasa)
+comprobar('la antelación sale de la tabla del aeropuerto',
+  conMaleta.antelacion === antelacionEn('VLC', true))
+
+// Si la aerolínea retrasa el vuelo, madrugar de más no tiene sentido.
+const conRetrasoDeAerolinea = planDeSalida(miVuelo('20:00'), 45, true, '12:00')
+comprobar('un retraso de la aerolínea retrasa la hora de salir', conRetrasoDeAerolinea.salDeCasa === '18:00',
+  conRetrasoDeAerolinea.salDeCasa)
+comprobar('y se avisa de que la hora ha cambiado', conRetrasoDeAerolinea.retrasada === true)
+comprobar('sin retraso no se avisa de nada', sinMaleta.retrasada === false)
+
+const salidaTarde = planDeSalida(miVuelo(), 45, true, '17:50')
+comprobar('detecta que ya tendría que haber salido', salidaTarde.margenMin < 0 && salidaTarde.salYa,
+  `margen=${salidaTarde.margenMin}`)
 
 // ---------------------------------------------------------------------------
 bloque('Datos de ejemplo completos (faltaba la llegada en 9 de 11)')

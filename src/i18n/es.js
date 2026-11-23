@@ -122,10 +122,43 @@ export default {
     shareButton: 'Compartir este vuelo',
     shareCopied: 'Enlace copiado',
     shareText: (code, desde, hasta) => `Mira cómo va el ${code}: ${desde} → ${hasta}`,
+    planTitle: '¿Y tú qué haces hoy?',
+    planBlurb: 'Dos preguntas y te decimos la hora exacta a la que salir de casa.',
+    planFlying: 'Es mi vuelo',
+    planPicking: 'Voy a recoger a alguien',
+    planBack: '← Volver',
     footer: 'IsItLate? — demo con datos de ejemplo · sin conexión a proveedores de vuelo reales todavía',
     footerLive: 'IsItLate? · Datos de vuelo de AeroDataBox',
     footerPrivacy: 'Política de privacidad',
     years: (n) => `${n.toLocaleString('es-ES')} años`,
+  },
+
+  /**
+   * Modo "Es mi vuelo". La otra cara del modo recoger: la misma pregunta,
+   * vista desde quien tiene que coger el avión.
+   */
+  departure: {
+    title: '¿A qué hora salgo de casa?',
+    blurb: 'Para llegar con tiempo y sin carreras.',
+    travelLabel: '¿Cuánto tardas en llegar al aeropuerto?',
+    travelUnit: 'minutos',
+    travelHelp: 'A ojo vale. Puerta de tu casa a puerta de la terminal.',
+    bagsLabel: '¿Vas a facturar maleta?',
+    bagsYes: 'Sí, facturo',
+    bagsNo: 'Solo de mano',
+    airportLabel: 'En el aeropuerto a las',
+    submit: 'Dime la hora',
+    again: 'Cambiar los datos',
+    answer: (hora) => `Sal de casa a las ${f.time(hora)}`,
+    answerNow: 'Sal ya, ahora mismo',
+    answerLate: (min) => `Vas tarde: tendrías que haber salido hace ${f.plural(min, 'minuto', 'minutos')}`,
+    margin: (min) => `Te quedan ${f.duration(min)} antes de salir.`,
+    explain: (x) =>
+      `Tu vuelo sale a las ${f.time(x.salida)}. ${x.conMaleta ? 'Facturando maleta conviene' : 'Conviene'} estar en el aeropuerto a las ${f.time(x.enElAeropuerto)}, que son ${f.duration(x.antelacion)} antes. Y desde tu casa son ${f.plural(x.trayectoMin, 'minuto', 'minutos')}.`,
+    moved: (programada, nueva) =>
+      `👀 Ojo: tu vuelo salía a las ${f.time(programada)} y la aerolínea lo ha movido a las ${f.time(nueva)}. Esta hora ya cuenta con el retraso, así que no madrugues de más.`,
+    estimateNote:
+      'Los tiempos de aeropuerto son estimaciones prudentes: perder un vuelo cuesta mucho más que esperar veinte minutos en la puerta de embarque.',
   },
 
   /**

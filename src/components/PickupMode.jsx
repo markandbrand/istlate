@@ -14,13 +14,12 @@ const TRAYECTO = { min: 1, max: 300 }
  * con la API: todo sale del vuelo que ya está en pantalla, así que responde
  * al instante y funciona igual con datos reales que con los de ejemplo.
  */
-export default function PickupMode({ flight }) {
+export default function PickupMode({ flight, onVolver }) {
   // `t` es solo la sección ui del diccionario; los textos del modo recoger
   // cuelgan del diccionario entero, igual que los del veredicto.
   const { copy, fmt } = useI18n()
   const c = copy.pickup
 
-  const [abierto, setAbierto] = useState(false)
   const [trayecto, setTrayecto] = useState('')
   const [maleta, setMaleta] = useState(null)
   const [plan, setPlan] = useState(null)
@@ -42,26 +41,9 @@ export default function PickupMode({ flight }) {
 
   function reiniciar() {
     setPlan(null)
-    setAbierto(true)
   }
 
-  // 1) Cerrado: solo la invitación.
-  if (!abierto) {
-    return (
-      <div className="mt-4 rounded-card border-2 border-[#c9e3f7] bg-blue-dim p-5 text-center">
-        <button
-          type="button"
-          onClick={() => setAbierto(true)}
-          className="cursor-pointer rounded-xl border-none bg-blue px-6 py-3 font-display text-[15px] font-semibold text-white transition-[background-color,transform] duration-150 ease-in-out hover:-translate-y-px hover:bg-blue-hover"
-        >
-          🚗 {c.cta}
-        </button>
-        <p className="mt-3 mb-0 text-[13px] text-ink-dim">{c.blurb}</p>
-      </div>
-    )
-  }
-
-  // 3) Con respuesta.
+  // Con respuesta.
   if (plan) {
     const tarde = plan.margenMin != null && plan.margenMin < 0
     const titular = plan.salYa
@@ -132,7 +114,7 @@ export default function PickupMode({ flight }) {
     )
   }
 
-  // 2) Las dos preguntas.
+  // Las dos preguntas.
   return (
     <div className="mt-4 rounded-card bg-card p-7 shadow-soft">
       <p className="mt-0 mb-1 font-display text-[17px] font-bold text-ink">🚗 {c.title}</p>
@@ -187,6 +169,14 @@ export default function PickupMode({ flight }) {
         className="mt-6 w-full cursor-pointer rounded-xl border-none bg-coral px-6 py-3 font-display text-[15px] font-semibold text-white transition-[background-color,transform] duration-150 ease-in-out hover:-translate-y-px hover:bg-coral-hover disabled:cursor-not-allowed disabled:bg-muted disabled:hover:translate-y-0"
       >
         {c.submit}
+      </button>
+
+      <button
+        type="button"
+        onClick={onVolver}
+        className="mt-3 w-full cursor-pointer border-none bg-transparent p-0 text-[13px] text-ink-dim underline underline-offset-[3px]"
+      >
+        {copy.ui.planBack}
       </button>
     </div>
   )
