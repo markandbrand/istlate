@@ -13,6 +13,7 @@ import { planDeRecogida, sePuedeRecoger } from '../src/lib/pickup.js'
 import { planDeSalida, sePuedeVolar } from '../src/lib/salida.js'
 import { antelacionEn } from '../src/data/airports.js'
 import { elQueSaleHoy, fechaPedida, handleFlightRequest } from '../src/lib/flightService.js'
+import { guardarPrediccion, completarReales, sumarGasto } from '../src/lib/registro.js'
 import { codigoDeLaRuta, idiomaDeLaRuta, rutaDeVuelo } from '../src/lib/rutas.js'
 import { esperaEnTerminal } from '../src/data/airports.js'
 import es from '../src/i18n/es.js'
@@ -261,6 +262,79 @@ comprobar('repetir un vuelo ya consultado no gasta',
 globalThis.fetch = fetchDeVerdad
 console.warn = avisoDeVerdad
 console.error = errorDeVerdad
+
+// ---------------------------------------------------------------------------
+bloque('Registro de predicciones (el dato que sostiene el argumento)')
+
+/** Base de datos de mentira: apunta qué se ejecutó y con qué parámetros. */
+function baseFalsa() {
+  const ejecutado = []
+  const filas = new Map()
+  return {
+    ejecutado,
+    DB: {
+      prepare(sql) {
+        let params = []
+        return {
+          bind(...p) { params = p; return this },
+          async run() { ejecutado.push({ sql, params }); return { success: true } },
+          async first() {
+            ejecutado.push({ sql, params })
+            if (!/INSERT INTO gasto/.test(sql)) return null
+            const [dia, unidades] = params
+            const antes = filas.get(dia) ?? 0
+            filas.set(dia, antes + unidades)
+            return { unidades: antes + unidades, avisado: 0 }
+          },
+        }
+      },
+    },
+  }
+}
+
+const enTierra = {
+  code: 'IB 1082', status: 'expected',
+  route: { from: { iata: 'VLC' }, to: { iata: 'MAD' } },
+  departure: { scheduled: '17:40', revised: '17:45' },
+  arrival: { scheduled: '18:50', revised: '18:35', predicted: '18:59' },
+}
+
+const base1 = baseFalsa()
+await guardarPrediccion(base1, enTierra, '2026-11-24')
+const inserts = base1.ejecutado.filter((e) => /INSERT INTO predicciones/.test(e.sql))
+comprobar('guarda la predicción de un vuelo que aún no ha salido', inserts.length === 1)
+comprobar('sin espacios en el número', inserts[0]?.params[0] === 'IB1082', inserts[0]?.params[0])
+comprobar('guarda lo que dice la aerolínea y lo que predice el proveedor',
+  inserts[0]?.params.includes('18:35') && inserts[0]?.params.includes('18:59'))
+comprobar('NO guarda nada que identifique a nadie',
+  !JSON.stringify(inserts[0]?.params).match(/\d+\.\d+\.\d+\.\d+/))
+
+// Lo importante: no apuntar como "predicción" algo que ya ha ocurrido.
+for (const estado of ['departed', 'enRoute', 'approaching', 'arrived']) {
+  const b = baseFalsa()
+  await guardarPrediccion(b, { ...enTierra, status: estado }, '2026-11-24')
+  comprobar(`no apunta hindsight con el vuelo en estado "${estado}"`,
+    b.ejecutado.filter((e) => /INSERT INTO predicciones/.test(e.sql)).length === 0)
+}
+
+const base2 = baseFalsa()
+await completarReales(base2, { ...enTierra, status: 'arrived' }, '2026-11-24')
+comprobar('cierra la fila cuando el vuelo ya aterrizó',
+  base2.ejecutado.some((e) => /UPDATE predicciones/.test(e.sql)))
+
+const base3 = baseFalsa()
+await completarReales(base3, enTierra, '2026-11-24')
+comprobar('no la cierra si todavía no ha aterrizado',
+  !base3.ejecutado.some((e) => /UPDATE predicciones/.test(e.sql)))
+
+// El contador de gasto, ahora compartido de verdad.
+const base4 = baseFalsa()
+const g1 = await sumarGasto(base4, 2)
+const g2 = await sumarGasto(base4, 6)
+comprobar('el gasto se acumula entre llamadas', g1.unidades === 2 && g2.unidades === 8,
+  `${g1?.unidades} luego ${g2?.unidades}`)
+comprobar('sin base de datos devuelve null (y se usa el contador en memoria)',
+  (await sumarGasto({}, 2)) === null)
 
 // ---------------------------------------------------------------------------
 bloque('Modo recoger')

@@ -10,6 +10,13 @@
  */
 import { normalizeStatus, toInternal } from './adapter.js'
 import { necesitaHistorial } from './verdict.js'
+import {
+  completarReales,
+  guardarPrediccion,
+  hayBaseDeDatos,
+  marcarAvisado,
+  sumarGasto,
+} from './registro.js'
 
 /** Formato de número de vuelo: 2-3 caracteres de aerolínea + 1-4 dígitos. */
 const FLIGHT_CODE = /^[A-Z0-9]{2,3}\d{1,4}$/
@@ -223,15 +230,38 @@ function topeDiario(env) {
   return Number.isFinite(puesto) && puesto > 0 ? puesto : PRESUPUESTO_POR_DEFECTO
 }
 
-/** Reserva unidades antes de llamar. Lanza si ya no quedan. */
+/**
+ * Reserva unidades antes de llamar. Lanza si ya no quedan.
+ *
+ * Con base de datos, la cuenta es global y de verdad: la suma es atómica, así
+ * que varias instancias atendiendo a la vez no se pisan. Sin ella, se cae al
+ * contador en memoria de cada instancia, que frena pero no corta.
+ */
 async function reservar(coste, env) {
+  const tope = topeDiario(env)
+
+  const enBase = await sumarGasto(env, coste)
+  if (enBase) {
+    // La cabecera de diagnóstico sigue enseñando el total real.
+    gasto.unidades = enBase.unidades
+    gasto.dia = today()
+    // Nota: al pasarse, las unidades ya se han sumado aunque no lleguemos a
+    // llamar. Se cuenta de más como mucho una consulta al día, y errar por
+    // ese lado es el lado bueno.
+    if (enBase.unidades > tope) throw new BudgetError(enBase.unidades, tope)
+    if (!enBase.avisado && enBase.unidades >= tope * AVISAR_AL) {
+      await marcarAvisado(env)
+      await avisarAlDueno(enBase.unidades, tope, env)
+    }
+    return
+  }
+
   const hoy = today()
   if (gasto.dia !== hoy) {
     gasto.dia = hoy
     gasto.unidades = 0
     gasto.avisado = false
   }
-  const tope = topeDiario(env)
   if (gasto.unidades + coste > tope) throw new BudgetError(gasto.unidades, tope)
   gasto.unidades += coste
 
@@ -313,7 +343,7 @@ async function callProvider(path, env, reintentar = true, coste = UNIDADES.vuelo
  * @param {object} env  variables de entorno (process.env o el env de Cloudflare)
  * @param {string} ip   IP del cliente, para el rate limit
  */
-export async function handleFlightRequest(request, env, ip = 'anon') {
+export async function handleFlightRequest(request, env, ip = 'anon', waitUntil = null) {
   const url = new URL(request.url)
   const code = (url.searchParams.get('code') || '').trim().toUpperCase()
   const fecha = fechaPedida(url.searchParams.get('date'))
@@ -390,6 +420,18 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
 
     const result = toInternal(flight, aircraftFlights, null, rangeFlights)
     cacheSet(cacheKey, result, ttlFor(flight))
+
+    // Apuntar la predicción y, si el vuelo ya aterrizó, cerrar la de aquel
+    // día con la hora real. Ninguna de las dos cosas gasta proveedor, y van
+    // en segundo plano para no hacer esperar a quien busca su vuelo.
+    if (hayBaseDeDatos(env)) {
+      const registrar = Promise.all([
+        guardarPrediccion(env, result, fecha),
+        completarReales(env, result, fecha),
+      ])
+      if (waitUntil) waitUntil(registrar)
+      else await registrar
+    }
     return json(result, 200, {
       'x-isitlate-cache': 'miss',
       'x-isitlate-gasto': `${gasto.unidades}/${topeDiario(env)}`,
