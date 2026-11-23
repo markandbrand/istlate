@@ -39,9 +39,13 @@ function apiDev(env) {
  */
 function siteUrl(env) {
   const url = (env.SITE_URL || env.CF_PAGES_URL || '').replace(/\/$/, '')
+  // Dirección provisional (o ninguna) = todavía no queremos salir en Google.
+  const provisional = url === '' || url.includes('.pages.dev')
+  const noindex = provisional ? '<meta name="robots" content="noindex, nofollow" />' : ''
   return {
     name: 'isitlate-site-url',
-    transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', url),
+    transformIndexHtml: (html) =>
+      html.replaceAll('%SITE_URL%', url).replaceAll('%NOINDEX%', noindex),
   }
 }
 

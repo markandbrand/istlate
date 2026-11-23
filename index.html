@@ -40,6 +40,17 @@
     />
     <meta name="twitter:image" content="%SITE_URL%/og.png" />
 
+    <!--
+      Mientras la web viva en la dirección provisional de Cloudflare, se pide
+      a los buscadores que no la indexen. Si Google indexara istlate.pages.dev
+      y después moviéramos el sitio a isitlate.app, acabaríamos con la
+      autoridad repartida entre dos direcciones, contenido duplicado y el
+      dominio provisional compitiendo contra el bueno.
+
+      vite.config.js quita esta etiqueta sola en cuanto SITE_URL apunte a un
+      dominio propio: no hay que acordarse de nada.
+    -->
+    %NOINDEX%
     <meta name="theme-color" content="#cfe9fb" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
