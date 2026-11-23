@@ -8,11 +8,11 @@
  *   npm run check
  */
 import { toInternal, buildEstimate } from '../src/lib/adapter.js'
-import { deriveVerdict } from '../src/lib/verdict.js'
+import { deriveVerdict, necesitaHistorial } from '../src/lib/verdict.js'
 import { planDeRecogida, sePuedeRecoger } from '../src/lib/pickup.js'
 import { planDeSalida, sePuedeVolar } from '../src/lib/salida.js'
 import { antelacionEn } from '../src/data/airports.js'
-import { elQueSaleHoy, fechaPedida } from '../src/lib/flightService.js'
+import { elQueSaleHoy, fechaPedida, handleFlightRequest } from '../src/lib/flightService.js'
 import { codigoDeLaRuta, idiomaDeLaRuta, rutaDeVuelo } from '../src/lib/rutas.js'
 import { esperaEnTerminal } from '../src/data/airports.js'
 import es from '../src/i18n/es.js'
@@ -172,6 +172,95 @@ comprobar('conserva la query (?demo=1)',
   rutaDeVuelo('FR1234', 'es', '?demo=1') === '/vuelo/FR1234?demo=1')
 comprobar('no construye rutas con basura', rutaDeVuelo('no soy un vuelo') === null)
 comprobar('el idioma lo manda el enlace', idiomaDeLaRuta('/flight/TK1314') === 'en')
+
+// ---------------------------------------------------------------------------
+bloque('El historial solo se pide cuando se va a enseñar')
+
+// Es la consulta más cara del proveedor (6 unidades de las 8 que cuesta una
+// búsqueda). Esta comprobación vigila que la decisión de pedirlo y el estado
+// que lo usa no se desincronicen: si mañana otro estado necesitara el
+// historial y no se actualizara la condición, aquí saltaría.
+const ESTADOS = [
+  'Expected', 'Unknown', 'CheckIn', 'Boarding', 'GateClosed',
+  'Departed', 'EnRoute', 'Approaching', 'Arrived', 'Canceled', 'Delayed',
+]
+
+let desincronizados = []
+for (const estadoCrudo of ESTADOS) {
+  for (const traceable of [true, false]) {
+    const raw = crudo(estadoCrudo, traceable ? { aircraft: { reg: 'EC-TEST', model: 'A320' } } : {})
+    const vuelo = toInternal(raw, [], null, historial)
+    const clave = deriveVerdict(vuelo, es).key
+    const pedido = necesitaHistorial(vuelo.status, traceable)
+    // Si el veredicto es "sin avión aún", el historial TIENE que pedirse.
+    if (clave === 'unassigned' && !pedido) desincronizados.push(`${estadoCrudo}/${traceable}: lo usa y no se pide`)
+    // Y si se pide, es porque ese estado lo usa.
+    if (pedido && clave !== 'unassigned') desincronizados.push(`${estadoCrudo}/${traceable}: se pide y no lo usa`)
+  }
+}
+comprobar(`los ${ESTADOS.length * 2} casos cuadran`, desincronizados.length === 0,
+  desincronizados.join(' · '))
+
+comprobar('un vuelo embarcando no gasta el historial', !necesitaHistorial('boarding', false))
+comprobar('un vuelo en el aire tampoco', !necesitaHistorial('enRoute', true))
+comprobar('uno cancelado tampoco', !necesitaHistorial('canceled', false))
+comprobar('pero uno sin avión asignado sí', necesitaHistorial('expected', false))
+
+// ---------------------------------------------------------------------------
+bloque('Tope de gasto diario (que nadie funda el mes en una tarde)')
+
+// Se simula el proveedor para no gastar cuota de verdad. El vuelo va
+// cancelado y sin avión, de modo que cada búsqueda hace UNA sola llamada
+// (2 unidades) y no arrastra pausas de ritmo.
+// Esta prueba provoca a propósito un error, y el código lo registra en
+// consola. Se silencia mientras dura, para que la salida siga siendo legible.
+const fetchDeVerdad = globalThis.fetch
+const avisoDeVerdad = console.warn
+const errorDeVerdad = console.error
+console.warn = () => {}
+console.error = () => {}
+let llamadasAlProveedor = 0
+globalThis.fetch = async () => {
+  llamadasAlProveedor++
+  return new Response(
+    JSON.stringify([
+      {
+        number: 'XX1', status: 'Canceled', aircraft: null,
+        departure: { scheduledTime: hora('10:00'), airport: { iata: 'VLC', municipalityName: 'Valencia' } },
+        arrival: { scheduledTime: hora('12:00'), airport: { iata: 'BCN', municipalityName: 'Barcelona' } },
+      },
+    ]),
+    { status: 200, headers: { 'content-type': 'application/json' } },
+  )
+}
+
+const entorno = { AERODATABOX_KEY: 'de-mentira', PRESUPUESTO_DIARIO: '4' }
+const buscar = (code, ip) =>
+  handleFlightRequest(new Request(`https://x/api/flight?code=${code}`), entorno, ip)
+
+const r1 = await buscar('AA101', 'ip-a')
+const r2 = await buscar('AA102', 'ip-b')
+const r3 = await buscar('AA103', 'ip-c')
+
+comprobar('la primera búsqueda pasa', r1.status === 200, `HTTP ${r1.status}`)
+comprobar('la segunda agota el tope de 4 unidades', r2.status === 200, `HTTP ${r2.status}`)
+comprobar('la tercera se corta sola', r3.status === 502, `HTTP ${r3.status}`)
+comprobar('y no llegó a llamar al proveedor', llamadasAlProveedor === 2,
+  `${llamadasAlProveedor} llamadas`)
+
+const cuerpo = await r3.json()
+comprobar('el usuario no ve nada de cuotas ni presupuestos',
+  cuerpo.error === 'provider_error' && !('message' in cuerpo),
+  JSON.stringify(cuerpo))
+
+// La caché evita volver a gastar por el mismo vuelo.
+const repetida = await buscar('AA101', 'ip-d')
+comprobar('repetir un vuelo ya consultado no gasta',
+  repetida.status === 200 && llamadasAlProveedor === 2, `${llamadasAlProveedor} llamadas`)
+
+globalThis.fetch = fetchDeVerdad
+console.warn = avisoDeVerdad
+console.error = errorDeVerdad
 
 // ---------------------------------------------------------------------------
 bloque('Modo recoger')

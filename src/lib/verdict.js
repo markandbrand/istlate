@@ -132,6 +132,25 @@ function trackRecord(history) {
   }
 }
 
+/**
+ * ¿Va a hacer falta el historial de días anteriores?
+ *
+ * Solo lo usa el estado "sin avión aún": es lo único que podemos contar
+ * cuando no se sabe qué avión toca. En los demás estados se pedía igual y se
+ * tiraba a la basura, y esa consulta es la más cara del proveedor (seis
+ * unidades de las ocho que cuesta una búsqueda).
+ *
+ * Vive aquí, junto a la lógica que decide el estado, para que no se
+ * desincronice: si mañana otro estado necesita el historial, se cambia en un
+ * solo sitio. Una comprobación automática vigila que las dos cosas cuadren.
+ */
+export function necesitaHistorial(status, traceable) {
+  if (status === 'canceled') return false
+  if (['checkIn', 'boarding', 'gateClosed'].includes(status)) return false
+  if (['departed', 'enRoute', 'approaching', 'arrived'].includes(status)) return false
+  return status === 'unknown' || !traceable
+}
+
 /** Decide el estado y calcula los números que el texto necesita. */
 function analyse(flight) {
   const departure = effectiveDeparture(flight)

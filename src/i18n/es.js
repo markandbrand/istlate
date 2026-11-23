@@ -127,6 +127,21 @@ export default {
     planFlying: 'Es mi vuelo',
     planPicking: 'Voy a recoger a alguien',
     planBack: '← Volver',
+    /**
+     * Mensajes de error, por clave.
+     *
+     * Regla de oro: al usuario NUNCA se le habla de cuotas, planes ni
+     * proveedores. Que no podamos consultar un vuelo es problema nuestro, no
+     * suyo. Se le dice qué pasa y qué puede hacer, y nada más.
+     */
+    errors: {
+      invalid_code: 'Eso no parece un número de vuelo. Prueba con algo como FR1234.',
+      not_found: (code) =>
+        `No encontramos el vuelo ${code ?? ''} para hoy. Revisa el número, o puede que hoy no vuele.`.replace('  ', ' '),
+      rate_limited: 'Vas muy rápido. Espera un minuto y vuelve a intentarlo.',
+      provider_error: 'No podemos consultar vuelos en este momento. Inténtalo más tarde.',
+      network: 'No hemos podido conectar. Revisa tu conexión y vuelve a intentarlo.',
+    },
     footer: 'IsItLate? — demo con datos de ejemplo · sin conexión a proveedores de vuelo reales todavía',
     footerLive: 'IsItLate? · Datos de vuelo de AeroDataBox',
     footerPrivacy: 'Política de privacidad',

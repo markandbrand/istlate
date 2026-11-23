@@ -29,8 +29,11 @@ export function LoadingCard() {
 }
 
 /** Tarjeta de error: dice qué ha pasado y qué hacer, sin culpar al usuario. */
-export function ErrorCard({ message, onRetry }) {
+export function ErrorCard({ error, onRetry }) {
   const { t } = useI18n()
+  // El servidor manda una clave; el texto lo pone el idioma activo.
+  const texto = t.errors[error?.clave] ?? t.errors.provider_error
+  const message = typeof texto === 'function' ? texto(error?.vuelo) : texto
   return (
     <div className="rounded-card bg-card p-7 text-center shadow-soft">
       <div className="mb-3 text-[32px]">🧭</div>

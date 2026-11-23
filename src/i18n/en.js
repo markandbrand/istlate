@@ -123,6 +123,21 @@ export default {
     planFlying: "I'm flying",
     planPicking: "I'm picking someone up",
     planBack: '← Back',
+    /**
+     * Error messages, by key.
+     *
+     * Golden rule: never mention quotas, plans or providers to the user. Not
+     * being able to look up a flight is our problem, not theirs. Tell them
+     * what happened and what they can do, nothing else.
+     */
+    errors: {
+      invalid_code: "That doesn't look like a flight number. Try something like AA1732.",
+      not_found: (code) =>
+        `We couldn't find flight ${code ?? ''} for today. Check the number, or it may not be flying today.`.replace('  ', ' '),
+      rate_limited: "You're going too fast. Wait a minute and try again.",
+      provider_error: "We can't look up flights right now. Please try again later.",
+      network: "We couldn't connect. Check your connection and try again.",
+    },
     footer: 'IsItLate? — demo on sample data · not wired up to a live flight provider yet',
     footerLive: 'IsItLate? · Flight data by AeroDataBox',
     footerPrivacy: 'Privacy policy',

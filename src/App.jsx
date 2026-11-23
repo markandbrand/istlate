@@ -70,7 +70,7 @@ export default function App() {
       setScenario(Object.keys(fixtures).find((k) => fixtures[k].code === result.code) ?? null)
     } catch (err) {
       if (id !== lastSearch.current) return
-      setError(err.message)
+      setError({ clave: err.clave ?? 'provider_error', vuelo: err.vuelo })
     } finally {
       if (id === lastSearch.current) setLoading(false)
     }
@@ -150,7 +150,7 @@ export default function App() {
           <section ref={resultRef} className="pt-[10px] pb-[60px]">
             <div key={searchId} className="animate-rise">
               {loading && <LoadingCard />}
-              {error && <ErrorCard message={error} onRetry={() => search()} />}
+              {error && <ErrorCard error={error} onRetry={() => search()} />}
               {flight && !loading && !error && <FlightResult flight={flight} />}
               {/* Los dos modos van fuera de la tarjeta, como una pregunta
                   aparte: "¿y tú qué haces hoy?". Quien vuela y quien recoge

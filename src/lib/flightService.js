@@ -8,7 +8,8 @@
  *   2. No pagar dos veces por la misma pregunta (caché).
  *   3. Que nadie te funda la cuota mensual (rate limit + validación).
  */
-import { toInternal } from './adapter.js'
+import { normalizeStatus, toInternal } from './adapter.js'
+import { necesitaHistorial } from './verdict.js'
 
 /** Formato de número de vuelo: 2-3 caracteres de aerolínea + 1-4 dígitos. */
 const FLIGHT_CODE = /^[A-Z0-9]{2,3}\d{1,4}$/
@@ -172,6 +173,102 @@ const OPCIONES = new URLSearchParams({
  * donde el segmento tras /flights/ admite number, reg, callSign o icao24
  * (enum FlightSearchByEnum de su esquema).
  */
+/* ═══════════════════════════════════════════════════════════════════════
+   PRESUPUESTO DIARIO
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Lo que cuesta cada consulta, en unidades del proveedor.
+ *
+ * Según su tabla de precios: Tier 1 = 1, Tier 2 = 2, Tier 3 = 6. El endpoint
+ * del vuelo está marcado como Tier 2 en su consola. El del historial no está
+ * confirmado y se asume el peor caso, que es lo prudente cuando el riesgo es
+ * quedarse sin servicio a mitad de mes.
+ */
+const UNIDADES = { vuelo: 2, rotacion: 2, historial: 6 }
+
+/**
+ * Tope de gasto por día.
+ *
+ * El plan gratuito da 600 unidades al MES. Sin un tope diario, una tarde en
+ * la que el enlace circule por un grupo de WhatsApp lo funde entero y la web
+ * se queda sin datos hasta el mes siguiente. Con 60 al día, un día malo
+ * cuesta un 10% del mes y queda margen para reaccionar.
+ *
+ * Se puede subir con la variable PRESUPUESTO_DIARIO al pasar a un plan mayor.
+ *
+ * LIMITACIÓN CONOCIDA, y es importante: este contador vive en la memoria de
+ * cada instancia del servidor, y Cloudflare levanta varias. Por tanto el tope
+ * real es más alto que el configurado: frena una avalancha, no la corta con
+ * precisión. El arreglo de verdad es llevar la cuenta en Cloudflare D1, que
+ * además hace falta para registrar predicciones. Mientras tanto, esto es
+ * mucho mejor que nada.
+ */
+const PRESUPUESTO_POR_DEFECTO = 60
+/** A partir de aquí conviene avisar al dueño, antes de quedarse sin nada. */
+const AVISAR_AL = 0.7
+
+const gasto = { dia: null, unidades: 0, avisado: false }
+
+/** Error propio: hemos decidido no gastar más hoy. */
+class BudgetError extends Error {
+  constructor(gastadas, tope) {
+    super(`Presupuesto diario agotado (${gastadas}/${tope} unidades)`)
+    this.status = 'presupuesto'
+  }
+}
+
+function topeDiario(env) {
+  const puesto = Number(env?.PRESUPUESTO_DIARIO)
+  return Number.isFinite(puesto) && puesto > 0 ? puesto : PRESUPUESTO_POR_DEFECTO
+}
+
+/** Reserva unidades antes de llamar. Lanza si ya no quedan. */
+async function reservar(coste, env) {
+  const hoy = today()
+  if (gasto.dia !== hoy) {
+    gasto.dia = hoy
+    gasto.unidades = 0
+    gasto.avisado = false
+  }
+  const tope = topeDiario(env)
+  if (gasto.unidades + coste > tope) throw new BudgetError(gasto.unidades, tope)
+  gasto.unidades += coste
+
+  if (!gasto.avisado && gasto.unidades >= tope * AVISAR_AL) {
+    gasto.avisado = true
+    await avisarAlDueno(gasto.unidades, tope, env)
+  }
+}
+
+/**
+ * Aviso al dueño cuando el gasto se acerca al tope.
+ *
+ * Al usuario NUNCA se le habla de esto: que no podamos consultar un vuelo es
+ * problema nuestro. Pero conviene enterarse antes de que pase, no después.
+ *
+ * Por Telegram porque es gratis y porque es la misma tubería que hará falta
+ * para los avisos del producto ("ha despegado", "ha aterrizado"). Sin las
+ * variables configuradas, no hace nada y no estorba.
+ */
+async function avisarAlDueno(gastadas, tope, env) {
+  const token = env?.TELEGRAM_BOT_TOKEN
+  const chat = env?.TELEGRAM_CHAT_ID
+  const texto = `🔔 IsItLate: ${gastadas} de ${tope} unidades gastadas hoy (${Math.round((gastadas / tope) * 100)}%).`
+  console.warn('[isitlate]', texto)
+  if (!token || !chat) return
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ chat_id: chat, text: texto }),
+    })
+  } catch (err) {
+    // Que falle el aviso no puede tumbar una búsqueda.
+    console.warn('[isitlate] no se pudo avisar:', err.message)
+  }
+}
+
 /**
  * Error del proveedor que recuerda QUÉ respondió.
  *
@@ -187,7 +284,9 @@ class ProviderError extends Error {
   }
 }
 
-async function callProvider(path, env, reintentar = true) {
+async function callProvider(path, env, reintentar = true, coste = UNIDADES.vuelo) {
+  // Solo en el primer intento: un reintento tras un 429 no consume de nuevo.
+  if (reintentar) await reservar(coste, env)
   const host = env.AERODATABOX_HOST || 'aerodatabox.p.rapidapi.com'
   const res = await fetch(`https://${host}${path}`, {
     headers: {
@@ -202,7 +301,7 @@ async function callProvider(path, env, reintentar = true) {
   // Un único reintento resuelve la colisión sin convertirse en un bucle.
   if (res.status === 429 && reintentar) {
     await pausa(MIN_ENTRE_LLAMADAS_MS)
-    return callProvider(path, env, false)
+    return callProvider(path, env, false, coste)
   }
   if (!res.ok) throw new ProviderError(res.status, path)
   const data = await res.json()
@@ -220,18 +319,14 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
   const fecha = fechaPedida(url.searchParams.get('date'))
 
   if (!FLIGHT_CODE.test(code)) {
-    return json(
-      { error: 'invalid_code', message: 'Eso no parece un número de vuelo. Prueba con algo como FR1234.' },
-      400,
-    )
+    // El texto lo pone el navegador a partir del código: así sale en el
+    // idioma de quien busca. Antes el servidor mandaba la frase en español
+    // fija y un usuario inglés se encontraba un mensaje que no entendía.
+    return json({ error: 'invalid_code' }, 400)
   }
 
   if (rateLimited(ip)) {
-    return json(
-      { error: 'rate_limited', message: 'Vas muy rápido. Espera un minuto y vuelve a intentarlo.' },
-      429,
-      { 'retry-after': '60' },
-    )
+    return json({ error: 'rate_limited' }, 429, { 'retry-after': '60' })
   }
 
   // Sin key configurada seguimos en modo demo: la web despliega y funciona.
@@ -250,10 +345,7 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
     const candidatos = await callProvider(`/flights/number/${code}/${fecha}?${OPCIONES}`, env)
     const flight = elQueSaleHoy(candidatos, fecha)
     if (!flight) {
-      return json(
-        { error: 'not_found', message: `No encontramos el vuelo ${code} para hoy.` },
-        404,
-      )
+      return json({ error: 'not_found', code }, 404)
     }
 
     // 2) Los tramos de ese avión hoy → la rotación.
@@ -266,7 +358,9 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
     let aircraftFlights = []
     if (buscarPor) {
       await pausa(MIN_ENTRE_LLAMADAS_MS)
-      aircraftFlights = await callProvider(`/flights/${buscarPor}/${fecha}?${OPCIONES}`, env)
+      aircraftFlights = await callProvider(
+        `/flights/${buscarPor}/${fecha}?${OPCIONES}`, env, true, UNIDADES.rotacion,
+      )
     }
 
     // 3) El historial del número de vuelo: cómo se porta habitualmente.
@@ -275,13 +369,17 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
     // según las mediciones es casi siempre antes de despegar. Se cachea 12 h
     // porque solo cambia al cerrarse el día, y va aparte del vuelo del día
     // para no repetir una consulta de rango, que es de las caras en unidades.
+    // Solo se pide si el estado del vuelo va a enseñarlo. Antes se pedía
+    // siempre: para un vuelo embarcando, volando o cancelado gastábamos la
+    // consulta más cara del proveedor y tirábamos la respuesta.
     const historyKey = `hist:${code}`
-    let rangeFlights = cacheGet(historyKey)
-    if (!rangeFlights) {
+    let rangeFlights = cacheGet(historyKey) ?? []
+    const haceFalta = necesitaHistorial(normalizeStatus(flight.status), Boolean(reg || modeS))
+    if (haceFalta && !cacheGet(historyKey)) {
       await pausa(MIN_ENTRE_LLAMADAS_MS)
       rangeFlights = await callProvider(
         `/flights/number/${code}/${daysAgo(DIAS_HISTORIAL)}/${daysAgo(1)}?${OPCIONES}`,
-        env,
+        env, true, UNIDADES.historial,
       ).catch((err) => {
         // Un fallo aquí no debe tumbar la búsqueda: el historial es apoyo.
         console.warn('[isitlate] historial no disponible:', err.message)
@@ -292,15 +390,19 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
 
     const result = toInternal(flight, aircraftFlights, null, rangeFlights)
     cacheSet(cacheKey, result, ttlFor(flight))
-    return json(result, 200, { 'x-isitlate-cache': 'miss' })
+    return json(result, 200, {
+      'x-isitlate-cache': 'miss',
+      'x-isitlate-gasto': `${gasto.unidades}/${topeDiario(env)}`,
+    })
   } catch (err) {
     console.error('[isitlate] fallo consultando el proveedor:', err)
     // El mensaje al usuario no cambia; el código del proveedor viaja en una
     // cabecera para poder diagnosticar desde fuera sin enseñar tripas.
-    return json(
-      { error: 'provider_error', message: 'No hemos podido consultar el vuelo ahora mismo. Inténtalo en un minuto.' },
-      502,
-      { 'x-isitlate-provider-status': String(err?.status ?? 'desconocido') },
-    )
+    // Al usuario le da igual si es una cuota agotada, un permiso o una
+    // caída del proveedor: todo eso es problema nuestro. Ve un mensaje
+    // neutro. El motivo real viaja en una cabecera, para diagnosticar.
+    return json({ error: 'provider_error' }, 502, {
+      'x-isitlate-provider-status': String(err?.status ?? 'desconocido'),
+    })
   }
 }

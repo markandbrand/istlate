@@ -9,10 +9,17 @@
 /** Si no hay backend (npm run dev a secas), tiramos de los datos de ejemplo. */
 const OFFLINE_FALLBACK = true
 
+/**
+ * Un fallo de búsqueda, identificado por su CLAVE, no por su texto.
+ *
+ * El texto lo pone la capa de idioma: así el mismo fallo se cuenta en español
+ * o en inglés según quien mire, y el servidor no tiene que saber idiomas.
+ */
 export class FlightError extends Error {
-  constructor(message, code) {
-    super(message)
-    this.code = code
+  constructor(clave, vuelo = null) {
+    super(clave)
+    this.clave = clave
+    this.vuelo = vuelo
   }
 }
 
@@ -45,12 +52,12 @@ export async function lookupFlight(code, { fixtures, demoCode }) {
       `/api/flight?code=${encodeURIComponent(normalized)}&date=${hoyLocal()}`,
     )
     const body = await res.json()
-    if (!res.ok) throw new FlightError(body.message ?? 'No hemos podido consultar el vuelo.', body.error)
+    if (!res.ok) throw new FlightError(body.error ?? 'provider_error', body.code ?? normalized)
     return body
   } catch (err) {
     if (err instanceof FlightError) throw err
     // No hay función serverless levantada: seguimos en modo demo.
     if (OFFLINE_FALLBACK) return { ...fixtureForCode(normalized, fixtures, demoCode), demo: true }
-    throw new FlightError('No hemos podido consultar el vuelo ahora mismo.', 'network')
+    throw new FlightError('network', normalized)
   }
 }
