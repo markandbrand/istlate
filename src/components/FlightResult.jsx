@@ -2,6 +2,7 @@ import PlaneIcon from './PlaneIcon.jsx'
 import Rotation from './Rotation.jsx'
 import HistoryStrip from './HistoryStrip.jsx'
 import FlightProgress from './FlightProgress.jsx'
+import ShareButton from './ShareButton.jsx'
 import { TONES } from '../lib/tones.js'
 import { deriveVerdict } from '../lib/verdict.js'
 import { useI18n } from '../i18n/index.jsx'
@@ -158,6 +159,8 @@ export default function FlightResult({ flight }) {
           )}
         </>
       )}
+
+      <ShareButton flight={flight} />
     </div>
   )
 }

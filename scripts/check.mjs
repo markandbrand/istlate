@@ -11,6 +11,7 @@ import { toInternal, buildEstimate } from '../src/lib/adapter.js'
 import { deriveVerdict } from '../src/lib/verdict.js'
 import { planDeRecogida, sePuedeRecoger } from '../src/lib/pickup.js'
 import { elQueSaleHoy, fechaPedida } from '../src/lib/flightService.js'
+import { codigoDeLaRuta, idiomaDeLaRuta, rutaDeVuelo } from '../src/lib/rutas.js'
 import { esperaEnTerminal } from '../src/data/airports.js'
 import es from '../src/i18n/es.js'
 import en from '../src/i18n/en.js'
@@ -148,6 +149,27 @@ comprobar('rechaza un formato casi válido', fechaPedida('2026-13-99x', HOY) ===
 // Sin este tope, alguien podría ir pidiendo fechas una tras otra y vaciar la cuota.
 comprobar('rechaza fechas lejanas (protege la cuota)', fechaPedida('2024-01-15', HOY) === HOY)
 comprobar('rechaza el futuro lejano', fechaPedida('2027-06-01', HOY) === HOY)
+
+// ---------------------------------------------------------------------------
+bloque('Direcciones por vuelo (antes compartir el enlace no servía de nada)')
+
+comprobar('lee /vuelo/TK1314', codigoDeLaRuta('/vuelo/TK1314') === 'TK1314')
+comprobar('lee /flight/TK1314', codigoDeLaRuta('/flight/TK1314') === 'TK1314')
+comprobar('acepta minúsculas', codigoDeLaRuta('/vuelo/tk1314') === 'TK1314')
+comprobar('tolera la barra final', codigoDeLaRuta('/vuelo/TK1314/') === 'TK1314')
+comprobar('rechaza una ruta sin código', codigoDeLaRuta('/vuelo/') === null)
+comprobar('rechaza basura en la URL', codigoDeLaRuta('/vuelo/<script>') === null)
+comprobar('no confunde la política de privacidad', codigoDeLaRuta('/privacidad') === null)
+comprobar('la portada no es un vuelo', codigoDeLaRuta('/') === null)
+
+// El proveedor devuelve "TK 1314" con espacio: sin limpiarlo, compartir
+// funcionaría con los datos de ejemplo y fallaría con los reales.
+comprobar('limpia el espacio del código real', rutaDeVuelo('TK 1314', 'es') === '/vuelo/TK1314')
+comprobar('ruta en inglés', rutaDeVuelo('TK 1314', 'en') === '/flight/TK1314')
+comprobar('conserva la query (?demo=1)',
+  rutaDeVuelo('FR1234', 'es', '?demo=1') === '/vuelo/FR1234?demo=1')
+comprobar('no construye rutas con basura', rutaDeVuelo('no soy un vuelo') === null)
+comprobar('el idioma lo manda el enlace', idiomaDeLaRuta('/flight/TK1314') === 'en')
 
 // ---------------------------------------------------------------------------
 bloque('Modo recoger')

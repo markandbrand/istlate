@@ -13,6 +13,11 @@ import { useI18n } from './i18n/index.jsx'
 import { isDemoRequested } from './lib/mode.js'
 import PrivacyPage from './components/PrivacyPage.jsx'
 import { LEGAL_COMPLETO } from './data/legal.js'
+import {
+  codigoDeLaRuta,
+  idiomaDeLaRuta as idiomaDeRutaDeVuelo,
+  rutaDeVuelo,
+} from './lib/rutas.js'
 
 /** Rutas de la política de privacidad, una por idioma. */
 const RUTAS_PRIVACIDAD = { '/privacidad': 'es', '/privacy': 'en' }
@@ -55,6 +60,12 @@ export default function App() {
       const result = await lookupFlight(code, { fixtures, demoCode })
       if (id !== lastSearch.current) return
       setFlight(result)
+      // La barra de direcciones pasa a apuntar a este vuelo, que es lo que
+      // hace que el enlace compartido lleve al vuelo y no a la portada.
+      // replaceState y no pushState: no queremos llenar el historial del
+      // navegador de pasos atrás por cada búsqueda.
+      const destino = rutaDeVuelo(result.code, locale, window.location.search)
+      if (destino) window.history.replaceState(null, '', destino)
       setIsDemo(isDemoRequested() || Boolean(result.demo))
       setScenario(Object.keys(fixtures).find((k) => fixtures[k].code === result.code) ?? null)
     } catch (err) {
@@ -80,6 +91,23 @@ export default function App() {
     setFlight({ ...picked, demo: true })
     setSearchId((n) => n + 1)
   }
+
+  // Abrir /vuelo/TK1314 busca ese vuelo solo. Sin esto, el enlace compartido
+  // llevaría a la portada vacía, que es justo lo que pasaba antes.
+  const arrancado = useRef(false)
+  useEffect(() => {
+    if (arrancado.current || typeof window === 'undefined') return
+    arrancado.current = true
+    const code = codigoDeLaRuta(window.location.pathname)
+    if (!code) return
+    // El idioma lo manda el enlace: un /vuelo/ compartido se abre en español
+    // aunque quien lo reciba tenga el navegador en inglés.
+    const idioma = idiomaDeRutaDeVuelo(window.location.pathname)
+    if (idioma) setLocale(idioma)
+    setQuery(code)
+    search(code)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (searchId > 0) {
