@@ -10,6 +10,7 @@
 import { toInternal, buildEstimate } from '../src/lib/adapter.js'
 import { deriveVerdict } from '../src/lib/verdict.js'
 import { planDeRecogida, sePuedeRecoger } from '../src/lib/pickup.js'
+import { elQueSaleHoy } from '../src/lib/flightService.js'
 import { esperaEnTerminal } from '../src/data/airports.js'
 import es from '../src/i18n/es.js'
 import en from '../src/i18n/en.js'
@@ -110,6 +111,30 @@ for (const [nombre, raw] of [
   const v = deriveVerdict(vuelo, es)
   comprobar(`${nombre} → ${v.key}`, Boolean(v.panel), 'se quedaría sin panel')
 }
+
+// ---------------------------------------------------------------------------
+bloque('Elegir el vuelo correcto (enseñaba el de ayer)')
+
+// El proveedor devuelve también la instancia del día anterior cuando su
+// LLEGADA cae en la fecha pedida. Caso real del 23/11 con el TK1314.
+const ayerYHoy = [
+  { number: 'TK1314', departure: { scheduledTime: { local: '2026-11-22 18:25+01:00' } }, status: 'EnRoute' },
+  { number: 'TK1314', departure: { scheduledTime: { local: '2026-11-23 18:25+01:00' } }, status: 'Expected' },
+]
+comprobar('elige el que sale HOY, no el de ayer',
+  elQueSaleHoy(ayerYHoy, '2026-11-23')?.status === 'Expected',
+  JSON.stringify(elQueSaleHoy(ayerYHoy, '2026-11-23')?.departure))
+
+comprobar('con el de ayer primero en la lista, sigue eligiendo bien',
+  elQueSaleHoy([...ayerYHoy].reverse(), '2026-11-23')?.status === 'Expected')
+
+comprobar('con un solo vuelo, lo devuelve',
+  elQueSaleHoy([ayerYHoy[1]], '2026-11-23')?.status === 'Expected')
+
+comprobar('sin vuelos, devuelve null', elQueSaleHoy([], '2026-11-23') === null)
+
+comprobar('si ninguno trae fecha reconocible, no se queda sin respuesta',
+  elQueSaleHoy([{ number: 'X', departure: {} }], '2026-11-23') !== null)
 
 // ---------------------------------------------------------------------------
 bloque('Modo recoger')

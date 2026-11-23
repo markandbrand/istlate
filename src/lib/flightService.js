@@ -103,6 +103,34 @@ const today = () => new Date().toISOString().slice(0, 10)
 const daysAgo = (n) => new Date(Date.now() - n * 86400_000).toISOString().slice(0, 10)
 
 /**
+ * De entre los vuelos que devuelve el proveedor, el que sale en la fecha
+ * pedida.
+ *
+ * El endpoint se llama "Flight status (nearest day)" y su documentación dice
+ * que devuelve el vuelo que sale **o llega** en la fecha consultada. Eso
+ * significa que un Valencia-Estambul que sale a las 18:25 y aterriza a las
+ * 00:10 del día siguiente aparece DOS veces al preguntar por hoy: la
+ * instancia de ayer (que llegó esta madrugada) y la de hoy (que aún no ha
+ * salido).
+ *
+ * El código cogía el primero de la lista a ciegas, y el primero es el de
+ * ayer. Resultado visto en producción el 23/11: el TK1314 de hoy, que salía
+ * a las 18:25, se enseñaba como "ya ha salido y ha aterrizado", con los
+ * datos del día anterior.
+ *
+ * Afecta a todos los vuelos que aterrizan pasada la medianoche, que son los
+ * de larga distancia y los de última hora: justo los que más importan.
+ */
+export function elQueSaleHoy(flights, fecha) {
+  if (!flights?.length) return null
+  const deHoy = flights.filter((f) =>
+    String(f.departure?.scheduledTime?.local ?? f.departure?.scheduledTime?.utc ?? '').startsWith(fecha),
+  )
+  // Si ninguno declara fecha de salida reconocible, mejor el primero que nada.
+  return deHoy[0] ?? flights[0]
+}
+
+/**
  * Parámetros opcionales, copiados de la consola de RapidAPI.
  *
  * Las imágenes de avión y el plan de vuelo engordan la respuesta y no los
@@ -198,7 +226,8 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
 
   try {
     // 1) El vuelo del usuario → nos da la matrícula asignada.
-    const [flight] = await callProvider(`/flights/number/${code}/${today()}?${OPCIONES}`, env)
+    const candidatos = await callProvider(`/flights/number/${code}/${today()}?${OPCIONES}`, env)
+    const flight = elQueSaleHoy(candidatos, today())
     if (!flight) {
       return json(
         { error: 'not_found', message: `No encontramos el vuelo ${code} para hoy.` },
