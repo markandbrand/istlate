@@ -10,7 +10,7 @@
 import { toInternal, buildEstimate } from '../src/lib/adapter.js'
 import { deriveVerdict } from '../src/lib/verdict.js'
 import { planDeRecogida, sePuedeRecoger } from '../src/lib/pickup.js'
-import { elQueSaleHoy } from '../src/lib/flightService.js'
+import { elQueSaleHoy, fechaPedida } from '../src/lib/flightService.js'
 import { esperaEnTerminal } from '../src/data/airports.js'
 import es from '../src/i18n/es.js'
 import en from '../src/i18n/en.js'
@@ -135,6 +135,19 @@ comprobar('sin vuelos, devuelve null', elQueSaleHoy([], '2026-11-23') === null)
 
 comprobar('si ninguno trae fecha reconocible, no se queda sin respuesta',
   elQueSaleHoy([{ number: 'X', departure: {} }], '2026-11-23') !== null)
+
+// ---------------------------------------------------------------------------
+bloque('Qué día le pedimos al proveedor (Greenwich iba un día por detrás)')
+
+const HOY = '2026-11-23'
+comprobar('usa la fecha local del navegador', fechaPedida('2026-11-23', HOY) === '2026-11-23')
+comprobar('acepta el día siguiente (madrugada en España)', fechaPedida('2026-11-24', HOY) === '2026-11-24')
+comprobar('sin fecha, cae a la de Greenwich', fechaPedida(null, HOY) === HOY)
+comprobar('rechaza basura', fechaPedida('ayer por la tarde', HOY) === HOY)
+comprobar('rechaza un formato casi válido', fechaPedida('2026-13-99x', HOY) === HOY)
+// Sin este tope, alguien podría ir pidiendo fechas una tras otra y vaciar la cuota.
+comprobar('rechaza fechas lejanas (protege la cuota)', fechaPedida('2024-01-15', HOY) === HOY)
+comprobar('rechaza el futuro lejano', fechaPedida('2027-06-01', HOY) === HOY)
 
 // ---------------------------------------------------------------------------
 bloque('Modo recoger')

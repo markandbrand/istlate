@@ -23,11 +23,27 @@ export function fixtureForCode(code, fixtures, demoCode) {
   return match ?? { ...fixtures.late, code: normalized || demoCode }
 }
 
+/**
+ * La fecha de HOY según el reloj del navegador, no según Greenwich.
+ *
+ * El servidor no puede saberlo: entre medianoche y la una de la madrugada en
+ * España, la fecha en hora de Greenwich es todavía la de ayer, y acabaríamos
+ * preguntando por el vuelo del día anterior.
+ */
+function hoyLocal() {
+  const d = new Date()
+  const mes = String(d.getMonth() + 1).padStart(2, '0')
+  const dia = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${mes}-${dia}`
+}
+
 export async function lookupFlight(code, { fixtures, demoCode }) {
   const normalized = (code || '').trim().toUpperCase()
 
   try {
-    const res = await fetch(`/api/flight?code=${encodeURIComponent(normalized)}`)
+    const res = await fetch(
+      `/api/flight?code=${encodeURIComponent(normalized)}&date=${hoyLocal()}`,
+    )
     const body = await res.json()
     if (!res.ok) throw new FlightError(body.message ?? 'No hemos podido consultar el vuelo.', body.error)
     return body

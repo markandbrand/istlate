@@ -99,6 +99,25 @@ const json = (body, status = 200, headers = {}) =>
 /** Fecha de hoy en formato YYYY-MM-DD, que es lo que espera AeroDataBox. */
 const today = () => new Date().toISOString().slice(0, 10)
 
+/**
+ * Qué día le pedimos al proveedor.
+ *
+ * `today()` se calcula en hora de Greenwich, y España va una o dos horas por
+ * delante. Entre las 00:00 y la 01:00 de la madrugada (las 02:00 en verano)
+ * le estaríamos preguntando por el día anterior: justo la franja en la que
+ * alguien espera en llegadas un vuelo de madrugada.
+ *
+ * La solución es que el navegador diga su propia fecha local, que es la que
+ * tiene en la cabeza quien busca. Se valida y se acota a ±2 días: sin ese
+ * tope, cualquiera podría ir pidiendo fechas una tras otra y vaciarnos la
+ * cuota del mes en un rato.
+ */
+export function fechaPedida(cruda, hoyUtc = today()) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(cruda ?? '')) return hoyUtc
+  const dias = Math.abs(Date.parse(`${cruda}T12:00:00Z`) - Date.parse(`${hoyUtc}T12:00:00Z`)) / 86400_000
+  return Number.isFinite(dias) && dias <= 2 ? cruda : hoyUtc
+}
+
 /** Fecha de hace n días, en el mismo formato. */
 const daysAgo = (n) => new Date(Date.now() - n * 86400_000).toISOString().slice(0, 10)
 
@@ -196,7 +215,9 @@ async function callProvider(path, env, reintentar = true) {
  * @param {string} ip   IP del cliente, para el rate limit
  */
 export async function handleFlightRequest(request, env, ip = 'anon') {
-  const code = (new URL(request.url).searchParams.get('code') || '').trim().toUpperCase()
+  const url = new URL(request.url)
+  const code = (url.searchParams.get('code') || '').trim().toUpperCase()
+  const fecha = fechaPedida(url.searchParams.get('date'))
 
   if (!FLIGHT_CODE.test(code)) {
     return json(
@@ -220,14 +241,14 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
     return json({ ...fixtureForCode(code, FIXTURES, DEMO_CODE), demo: true }, 200, { 'x-isitlate-mode': 'demo' })
   }
 
-  const cacheKey = `${code}:${today()}`
+  const cacheKey = `${code}:${fecha}`
   const cached = cacheGet(cacheKey)
   if (cached) return json(cached, 200, { 'x-isitlate-cache': 'hit' })
 
   try {
     // 1) El vuelo del usuario → nos da la matrícula asignada.
-    const candidatos = await callProvider(`/flights/number/${code}/${today()}?${OPCIONES}`, env)
-    const flight = elQueSaleHoy(candidatos, today())
+    const candidatos = await callProvider(`/flights/number/${code}/${fecha}?${OPCIONES}`, env)
+    const flight = elQueSaleHoy(candidatos, fecha)
     if (!flight) {
       return json(
         { error: 'not_found', message: `No encontramos el vuelo ${code} para hoy.` },
@@ -245,7 +266,7 @@ export async function handleFlightRequest(request, env, ip = 'anon') {
     let aircraftFlights = []
     if (buscarPor) {
       await pausa(MIN_ENTRE_LLAMADAS_MS)
-      aircraftFlights = await callProvider(`/flights/${buscarPor}/${today()}?${OPCIONES}`, env)
+      aircraftFlights = await callProvider(`/flights/${buscarPor}/${fecha}?${OPCIONES}`, env)
     }
 
     // 3) El historial del número de vuelo: cómo se porta habitualmente.
