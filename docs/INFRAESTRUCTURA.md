@@ -145,7 +145,22 @@ ingresos que lo paguen, que es exactamente como debe ser.
    repositorio. Coste 15 €, tiempo media hora.
 2. **Antes de pagar el primer plan de API:** mover la caché a Cloudflare KV.
    Es la palanca del punto 3 y es barata de hacer.
-3. **Cuando el tráfico lo pida:** comparar AeroDataBox directo frente a
+3. **El mismo día que se contrate el plan Pro, sin falta:**
+
+   🔓 **Quitar el `Disallow: /vuelo/` de `public/robots.txt`.**
+
+   Se puso el 27/11/2026, al llegar el dominio, porque cada página de vuelo
+   ejecuta una búsqueda real y un robot recorriéndolas vaciaba el plan
+   gratuito en una tarde. No bloquea a ninguna persona, solo a los robots de
+   los buscadores.
+
+   Con plan de pago deja de tener sentido: el objetivo es que entren visitas
+   vengan de donde vengan. Y conviene además generar esas páginas en el
+   servidor, con contenido estable ("el IB1082 sale puntual el 29% de los
+   días") en vez de dejar que el robot ejecute la aplicación: así se indexan
+   de verdad y no cuestan una consulta por visita.
+
+4. **Cuando el tráfico lo pida:** comparar AeroDataBox directo frente a
    RapidAPI, que cobra su parte por encima.
-4. **Cuando haya páginas SEO:** generarlas en el servidor con Workers, sin
+5. **Cuando haya páginas SEO:** generarlas en el servidor con Workers, sin
    cambiar de proveedor.
