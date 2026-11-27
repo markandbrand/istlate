@@ -1,6 +1,16 @@
-# Se permite rastrear a propósito: mientras la web viva en una dirección
-# provisional, index.html lleva una etiqueta "noindex" y Google necesita
-# poder leerla para obedecerla. Bloquear aquí el rastreo conseguiría lo
-# contrario: que la dirección se indexara igual, sin poder ver el aviso.
+# Se permite rastrear el sitio, pero NO las páginas de vuelo concretas.
+#
+# Cada /vuelo/XXXX ejecuta una búsqueda real contra el proveedor y gasta
+# cuota. Un robot recorriéndolas vaciaría el plan en una tarde, y además no
+# aporta nada a Google: el contenido de esas páginas cambia cada hora y no
+# hay nada estable que indexar.
+#
+# Las páginas que SÍ interesa posicionar (guías, contenido) van en otras
+# rutas y se rastrean con normalidad.
+#
+# Cuando haya plan de pago y páginas por vuelo generadas en servidor, esto
+# se revisa.
 User-agent: *
 Allow: /
+Disallow: /vuelo/
+Disallow: /flight/
