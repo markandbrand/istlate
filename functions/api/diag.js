@@ -7,6 +7,16 @@ export const onRequestGet = async ({ request, env }) => {
   const url = new URL(request.url)
   const pasos = Number(url.searchParams.get('pasos') ?? '1')
   const t0 = Date.now()
+
+  // ¿Cloudflare respeta el cuerpo de una respuesta nuestra con estado 5xx?
+  const responder = url.searchParams.get('responder')
+  if (responder) {
+    return new Response(JSON.stringify({ sonda: true, estado: Number(responder) }), {
+      status: Number(responder),
+      headers: { 'content-type': 'application/json; charset=utf-8', 'x-isitlate-sonda': 'si' },
+    })
+  }
+
   const r = {
     key: Boolean(env?.AERODATABOX_KEY),
     keyLargo: env?.AERODATABOX_KEY ? String(env.AERODATABOX_KEY).length : 0,
@@ -80,6 +90,16 @@ export const onRequestGet = async ({ request, env }) => {
     } catch (err) {
       r.manejador = { ok: false, error: String(err?.message ?? err), pila: String(err?.stack ?? '').slice(0, 300), ms: Date.now() - t }
     }
+  }
+
+  // El contador de gasto real de hoy, para saber si el tope está agotado.
+  try {
+    const dia = new Date().toISOString().slice(0, 10)
+    r.gastoHoy = await env.DB.prepare('SELECT dia, unidades, avisado FROM gasto ORDER BY dia DESC LIMIT 5').all()
+      .then((x) => x.results)
+    r.diaDeHoy = dia
+  } catch (err) {
+    r.gastoHoy = String(err?.message ?? err)
   }
 
   r.msTotal = Date.now() - t0
