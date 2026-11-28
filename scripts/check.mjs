@@ -245,7 +245,7 @@ const r3 = await buscar('AA103', 'ip-c')
 
 comprobar('la primera búsqueda pasa', r1.status === 200, `HTTP ${r1.status}`)
 comprobar('la segunda agota el tope de 4 unidades', r2.status === 200, `HTTP ${r2.status}`)
-comprobar('la tercera se corta sola', r3.status === 502, `HTTP ${r3.status}`)
+comprobar('la tercera se corta sola', r3.status === 503, `HTTP ${r3.status}`)
 comprobar('y no llegó a llamar al proveedor', llamadasAlProveedor === 2,
   `${llamadasAlProveedor} llamadas`)
 
@@ -449,6 +449,13 @@ comprobar('una caída deja el motivo en una cabecera',
 
 // El fallo más grave de todos: un error del servidor enseñaba un vuelo de
 // ejemplo con horas inventadas como si fuera el que el usuario había buscado.
+// Cloudflare sustituye el cuerpo de CUALQUIER 502 por su propia página de
+// texto plano, sin cabeceras. El navegador no la puede leer. Comprobado en
+// producción: con 503 la respuesta llega intacta, con 502 desaparece.
+comprobar('el servidor no usa nunca el estado 502',
+  !/,\s*502\b/.test(sinComentarios(servicio)) && !/status:\s*502\b/.test(sinComentarios(funcion)),
+  'ha vuelto un 502: Cloudflare se comerá la respuesta')
+
 comprobar('los datos de ejemplo NO tapan fallos en producción',
   /OFFLINE_FALLBACK = Boolean\(import\.meta\.env\?\.DEV\)/.test(clienteApi),
   'OFFLINE_FALLBACK vuelve a estar activo en producción')

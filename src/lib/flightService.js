@@ -20,6 +20,7 @@ import {
   completarReales,
   guardarPrediccion,
   hayBaseDeDatos,
+  devolverGasto,
   marcarAvisado,
   sumarGasto,
 } from './registro.js'
@@ -251,10 +252,15 @@ async function reservar(coste, env) {
     // La cabecera de diagnóstico sigue enseñando el total real.
     gasto.unidades = enBase.unidades
     gasto.dia = today()
-    // Nota: al pasarse, las unidades ya se han sumado aunque no lleguemos a
-    // llamar. Se cuenta de más como mucho una consulta al día, y errar por
-    // ese lado es el lado bueno.
-    if (enBase.unidades > tope) throw new BudgetError(enBase.unidades, tope)
+    // Al pasarse hay que devolver lo apuntado: la llamada no se va a hacer.
+    // Si no, cada intento bloqueado sigue sumando y el contador deja de medir
+    // gasto real. Hoy marcaba 204 unidades con un tope de 60, y la mayoría
+    // eran intentos que nunca llegaron al proveedor: imposible saber cuánto
+    // se había gastado de verdad.
+    if (enBase.unidades > tope) {
+      await devolverGasto(env, coste)
+      throw new BudgetError(enBase.unidades, tope)
+    }
     if (!enBase.avisado && enBase.unidades >= tope * AVISAR_AL) {
       await marcarAvisado(env)
       await avisarAlDueno(enBase.unidades, tope, env)
@@ -447,7 +453,13 @@ export async function handleFlightRequest(request, env, ip = 'anon', waitUntil =
     // Al usuario le da igual si es una cuota agotada, un permiso o una
     // caída del proveedor: todo eso es problema nuestro. Ve un mensaje
     // neutro. El motivo real viaja en una cabecera, para diagnosticar.
-    return json({ error: 'provider_error' }, 502, {
+    // 503 y no 502 a propósito, y no es un detalle: Cloudflare TIRA el cuerpo
+    // de cualquier respuesta 502 que devuelva la función y la sustituye por su
+    // propia página («error code: 502», texto plano, sin cabeceras). El
+    // navegador no podía leerla, se iba por el camino del fallo y acabó
+    // ensenando un vuelo de ejemplo como si fuera el buscado. Con 503 la
+    // respuesta llega intacta. Comprobado en producción el 28/11/2026.
+    return json({ error: 'provider_error' }, 503, {
       'x-isitlate-provider-status': String(err?.status ?? 'desconocido'),
     })
   }

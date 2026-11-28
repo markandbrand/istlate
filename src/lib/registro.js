@@ -122,6 +122,30 @@ export async function sumarGasto(env, unidades) {
   }
 }
 
+/**
+ * Devuelve al contador unas unidades que al final no se van a gastar.
+ *
+ * Hace falta porque el apunte es atómico y por tanto va ANTES de comprobar el
+ * tope: cuando el tope se pasa, la llamada no se hace pero ya está sumada. Sin
+ * esto, cada intento bloqueado seguía inflando el contador y dejaba de medir
+ * gasto real (204 unidades apuntadas para un tope de 60, el 28/11/2026).
+ *
+ * No baja de cero: más vale un contador prudente que uno en negativo.
+ */
+export async function devolverGasto(env, unidades) {
+  if (!hayBaseDeDatos(env)) return
+  const dia = new Date().toISOString().slice(0, 10)
+  try {
+    await env.DB.prepare(
+      'UPDATE gasto SET unidades = MAX(0, unidades - ?) WHERE dia = ?',
+    )
+      .bind(unidades, dia)
+      .run()
+  } catch (err) {
+    console.warn('[isitlate] no se pudo devolver el gasto:', err.message)
+  }
+}
+
 /** Deja constancia de que ya se avisó, para no repetir el aviso cada búsqueda. */
 export async function marcarAvisado(env) {
   if (!hayBaseDeDatos(env)) return

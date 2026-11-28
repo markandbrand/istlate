@@ -26,7 +26,8 @@ export const onRequestGet = async (contexto) => {
   } catch (err) {
     console.error('[isitlate] la función se ha caído:', err)
     return new Response(JSON.stringify({ error: 'provider_error' }), {
-      status: 502,
+      // 503, no 502: Cloudflare destruye el cuerpo de los 502 (ver abajo).
+      status: 503,
       headers: {
         'content-type': 'application/json; charset=utf-8',
         'cache-control': 'no-store',
