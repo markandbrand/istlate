@@ -42,6 +42,46 @@ export const onRequestGet = async ({ request, env }) => {
     }
   }
 
+  if (pasos >= 4) {
+    // La llamada REAL, con la misma ruta y las mismas opciones que la web.
+    const t = Date.now()
+    const host = env?.AERODATABOX_HOST ?? 'aerodatabox.p.rapidapi.com'
+    const fecha = new Date().toISOString().slice(0, 10)
+    const opciones = 'withAircraftImage=false&withLocation=false&withFlightPlan=false&dateLocalRole=Both'
+    const ruta = `/flights/number/${url.searchParams.get('code') ?? 'ZZ9999'}/${fecha}?${opciones}`
+    try {
+      const res = await fetch(`https://${host}${ruta}`, {
+        headers: {
+          'X-RapidAPI-Key': env.AERODATABOX_KEY,
+          'X-RapidAPI-Host': host,
+          Accept: 'application/json',
+        },
+      })
+      const cuerpo = await res.text()
+      r.vueloReal = { ruta, status: res.status, ms: Date.now() - t, bytes: cuerpo.length, cuerpo: cuerpo.slice(0, 200) }
+    } catch (err) {
+      r.vueloReal = { ruta, ok: false, error: String(err?.message ?? err), ms: Date.now() - t }
+    }
+  }
+
+  if (pasos >= 5) {
+    // El manejador completo, tal cual, pero recogiendo lo que devuelva.
+    const t = Date.now()
+    try {
+      const { handleFlightRequest } = await import('../../src/lib/flightService.js')
+      const falsa = new Request(`https://x/api/flight?code=${url.searchParams.get('code') ?? 'ZZ9999'}&date=${new Date().toISOString().slice(0, 10)}`)
+      const res = await handleFlightRequest(falsa, env, 'diag', null)
+      r.manejador = {
+        status: res.status,
+        ms: Date.now() - t,
+        cabeceras: Object.fromEntries([...res.headers].filter(([k]) => k.startsWith('x-isitlate'))),
+        cuerpo: (await res.text()).slice(0, 200),
+      }
+    } catch (err) {
+      r.manejador = { ok: false, error: String(err?.message ?? err), pila: String(err?.stack ?? '').slice(0, 300), ms: Date.now() - t }
+    }
+  }
+
   r.msTotal = Date.now() - t0
   return new Response(JSON.stringify(r, null, 2), {
     status: 200,
