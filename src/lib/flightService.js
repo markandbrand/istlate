@@ -45,7 +45,12 @@ const CACHE_TTL_CERCA_MS = 90_000 // en la recta final
 const CACHE_TTL_HISTORIAL_MS = 12 * 3600_000
 /** Días de histórico que alimentan la tira de puntualidad. */
 const DIAS_HISTORIAL = 7
-const RATE_LIMIT = { max: 20, windowMs: 60_000 } // 20 búsquedas por IP y minuto
+// 6 por IP y minuto. Estaba en 20, que era un agujero: una búsqueda gasta
+// entre 4 y 10 unidades del proveedor, así que 20 por minuto desde una sola
+// IP podían vaciar el tope del día en tres minutos. Para una persona de
+// verdad, 6 sobran: se busca un vuelo, se recarga un par de veces y ya.
+// El tope diario sigue siendo la red de seguridad de debajo.
+const RATE_LIMIT = { max: 6, windowMs: 60_000 }
 
 /**
  * Ritmo al que el proveedor nos deja llamar.
