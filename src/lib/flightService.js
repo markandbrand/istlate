@@ -9,6 +9,12 @@
  *   3. Que nadie te funda la cuota mensual (rate limit + validación).
  */
 import { normalizeStatus, toInternal } from './adapter.js'
+// Estáticos a propósito. Con `await import()` el empaquetador de
+// Cloudflare Functions deja estos módulos en un archivo aparte que no se
+// sube, y la primera búsqueda real tumbaba la función con un 502 del que
+// no quedaba ni rastro en las cabeceras. 28/11/2026.
+import { FIXTURES, DEMO_CODE } from '../data/fixtures.es.js'
+import { fixtureForCode } from '../data/flightApi.js'
 import { necesitaHistorial } from './verdict.js'
 import {
   completarReales,
@@ -361,8 +367,6 @@ export async function handleFlightRequest(request, env, ip = 'anon', waitUntil =
 
   // Sin key configurada seguimos en modo demo: la web despliega y funciona.
   if (!env.AERODATABOX_KEY) {
-    const { FIXTURES, DEMO_CODE } = await import('../data/fixtures.es.js')
-    const { fixtureForCode } = await import('../data/flightApi.js')
     return json({ ...fixtureForCode(code, FIXTURES, DEMO_CODE), demo: true }, 200, { 'x-isitlate-mode': 'demo' })
   }
 

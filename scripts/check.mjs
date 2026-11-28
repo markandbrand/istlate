@@ -421,5 +421,38 @@ comprobar('el inglés no se deja ninguna clave', soloEs.length === 0, soloEs.joi
 comprobar('el español no se deja ninguna clave', soloEn.length === 0, soloEn.join(', '))
 
 // ---------------------------------------------------------------------------
+bloque('El servidor no puede caerse sin dejar rastro (incidencia del 28/11/2026)')
+
+const { readFileSync } = await import('node:fs')
+const leer = (ruta) => readFileSync(new URL(`../${ruta}`, import.meta.url), 'utf8')
+
+const servicio = leer('src/lib/flightService.js')
+const funcion = leer('functions/api/flight.js')
+const clienteApi = leer('src/data/flightApi.js')
+
+// Un import() dinámico queda en un archivo aparte que el empaquetador de
+// Cloudflare Functions no sube: la función reventaba al ejecutarlo, y encima
+// estaba fuera del try, así que salía la página de Cloudflare sin cabeceras.
+const sinComentarios = (texto) => texto.replace(/^\s*(\/\/|\*|\/\*).*$/gm, '')
+comprobar('el servidor no usa import() dinámico',
+  !/await\s+import\s*\(/.test(sinComentarios(servicio)),
+  'vuelve a haber un import dinámico en flightService.js')
+
+// Sin esto, cualquier caída se ve como «error code: 502» en texto plano: el
+// navegador no lo puede leer y nos quedamos sin saber qué ha fallado.
+comprobar('la función envuelve todo en try/catch y responde JSON',
+  /try\s*{/.test(funcion) && /catch/.test(funcion) && /application\/json/.test(funcion),
+  'functions/api/flight.js se ha quedado sin red de seguridad')
+
+comprobar('una caída deja el motivo en una cabecera',
+  /x-isitlate-crash/.test(funcion), 'falta la cabecera de diagnóstico')
+
+// El fallo más grave de todos: un error del servidor enseñaba un vuelo de
+// ejemplo con horas inventadas como si fuera el que el usuario había buscado.
+comprobar('los datos de ejemplo NO tapan fallos en producción',
+  /OFFLINE_FALLBACK = Boolean\(import\.meta\.env\?\.DEV\)/.test(clienteApi),
+  'OFFLINE_FALLBACK vuelve a estar activo en producción')
+
+// ---------------------------------------------------------------------------
 console.log(`\n${fallos === 0 ? '✅' : '❌'} ${pruebas - fallos}/${pruebas} comprobaciones correctas`)
 process.exit(fallos === 0 ? 0 : 1)

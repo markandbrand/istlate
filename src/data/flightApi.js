@@ -6,8 +6,19 @@
  * ya viene en la forma interna.
  */
 
-/** Si no hay backend (npm run dev a secas), tiramos de los datos de ejemplo. */
-const OFFLINE_FALLBACK = true
+/**
+ * Datos de ejemplo cuando no hay backend: SOLO en desarrollo.
+ *
+ * En producción esto estaba en `true`, y el efecto era grave: si la función
+ * del servidor fallaba, el navegador no podía leer la respuesta, caía aquí y
+ * le ensenaba a la gente un vuelo de ejemplo —Valencia-Londres, con sus
+ * horas— como si fuera el vuelo que acababa de buscar. Mentir sobre a qué
+ * hora sale un avión es justo lo contrario de lo que hace esta web.
+ *
+ * Ahora, si el servidor falla, se ve un mensaje de error. Es menos bonito y
+ * es lo correcto. En `npm run dev` sigue funcionando sin backend.
+ */
+const OFFLINE_FALLBACK = Boolean(import.meta.env?.DEV)
 
 /**
  * Un fallo de búsqueda, identificado por su CLAVE, no por su texto.
@@ -56,8 +67,9 @@ export async function lookupFlight(code, { fixtures, demoCode }) {
     return body
   } catch (err) {
     if (err instanceof FlightError) throw err
-    // No hay función serverless levantada: seguimos en modo demo.
+    // En desarrollo, sin función serverless levantada, seguimos en modo demo.
     if (OFFLINE_FALLBACK) return { ...fixtureForCode(normalized, fixtures, demoCode), demo: true }
+    // En producción, un fallo es un fallo. Nunca un vuelo inventado.
     throw new FlightError('network', normalized)
   }
 }
